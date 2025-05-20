@@ -9,6 +9,18 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.7.13"
+    "@alpinejs/collapse": "^3.14.9",
+    "@astrojs/alpinejs": "^0.4.8",
+    "@astrojs/tailwind": "^6.0.2",
+    "@fontsource/inter": "^5.2.5",
+    "@iconify-json/lucide": "^1.2.44",
+    "@types/alpinejs": "^3.13.11",
+    "alpinejs": "^3.14.9",
+    "astro": "^5.7.13",
+    "astro-compress": "^2.3.8",
+    "prettier": "^3.5.3",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "tailwindcss": "^3.4.17"
   }
 }

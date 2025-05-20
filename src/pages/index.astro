@@ -1,16 +1,21 @@
 ---
-
+import About from '../components/home/About.astro';
+import Cta from '../components/home/Cta.astro';
+import Expertise from '../components/home/Expertise.astro';
+import Hero from '../components/home/Hero.astro';
+import Testimonials from '../components/home/Testimonials.astro';
+import Workshops from '../components/home/Workshops.astro';
+import Layout from '../layouts/Layout.astro';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout
+  description="Organización de Física Teórica y Experimental"
+  title="Pagina Principal · OFTE"
+>
+  <Hero />
+  <Workshops />
+  <Expertise />
+  <About />
+  <Testimonials />
+  <Cta />
+</Layout>
