@@ -1,47 +1,29 @@
-# Astro Starter Kit: Minimal
+# 🌌 OFTE — Organización de Física Teórica y Experimental
 
-```sh
-npm create astro@latest -- --template minimal
-```
+**Sitio web oficial de la Organización de Física Teórica y Experimental (OFTE)**  
+Facultad de Ingeniería — Universidad Andrés Bello (UNAB)
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/minimal)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/minimal)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/minimal/devcontainer.json)
+Este proyecto contiene la página web de la OFTE, desarrollada con [Astro](https://astro.build), enfocada en la difusión de actividades académicas y científicas relacionadas con la Física.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## 🚀 Objetivos
 
-## 🚀 Project Structure
+- Promover el estudio, discusión y colaboración en Física.
+- Difundir seminarios, talleres y grupos de estudio organizados por estudiantes.
+- Centralizar recursos académicos y actividades de divulgación científica.
+- Crear comunidad entre estudiantes interesados en Física teórica y experimental.
 
-Inside of your Astro project, you'll see the following folders and files:
+## 🛠️ Tecnologías utilizadas
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+- **Astro** — Framework estático moderno
+- **Firebase Hosting** — Para despliegue y backend de inscripciones
+- **Firestore (Firebase)** — Base de datos en tiempo real
+- **GitHub Actions** — Deploy automático desde rama `main`
+- **Google Analytics** — Para medir visitas y participación
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 📅 Funcionalidades
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- Página de inicio con noticias y próximos seminarios
+- Formulario de inscripción con almacenamiento en Firebase
+- Sección para grupos de estudio y recursos compartidos
+- Información sobre charlas en colegios
+- Datos de contacto y redes sociales
