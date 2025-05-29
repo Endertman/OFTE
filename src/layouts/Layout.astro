@@ -3,6 +3,7 @@ import '@fontsource/inter/latin-400.css';
 import '@fontsource/inter/latin-500.css';
 import Footer from '../components/layout/Footer.astro';
 import Header from '../components/layout/Header.astro';
+import GoogleAnalytics from '../components/GoogleAnalytics.astro';
 
 interface Props {
   description: string;
@@ -24,6 +25,7 @@ const { description, title } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <GoogleAnalytics />
   </head>
   <body class="bg-primary-50 text-primary-950 dark:bg-primary-950 dark:text-primary-200 antialiased transition min-h-screen relative">
     <div id="fondo" class="fixed inset-0 -z-10 bg-[url('/assets/fondo.png')] bg-no-repeat bg-cover transition-opacity duration-300" :class="{ 'opacity-[0.20]': !$store.theme.isDark, 'opacity-[0.08]': $store.theme.isDark }"></div>
