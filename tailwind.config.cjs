@@ -45,7 +45,7 @@ const slate = {
 };
 
 const nishikigo = {
-    '50':  '#f0f0f0',   // extrapolación clara desde #BFBFBF
+    '50':  '#f0f0f0',   // extrapolación clara 
     '100': '#dbdbdb',   // tono claro similar al 5
     '200': '#bfbfbf',   // Diseño-5 (neutral claro)
     '300': '#a2b4b3',   // interpolado entre 3 y 5
@@ -55,7 +55,7 @@ const nishikigo = {
     '700': '#127369',   // Diseño-1 (verde profundo)
     '800': '#10403b',   // Diseño-2 (verde petróleo oscuro)
     '900': '#0b2b27',   // extrapolación más oscura
-    '950': '#051615',    // casi negro verdoso
+    '950': '#051615',   // casi negro verdoso
 };
 
 module.exports = {
