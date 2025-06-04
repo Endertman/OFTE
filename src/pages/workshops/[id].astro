@@ -4,11 +4,16 @@ import WorkshopDetail from '../../components/workshops/WorkshopDetail.astro';
 import { getWorkshops } from '../../firebase';
 
 export async function getStaticPaths() {
-  const workshops = await getWorkshops();
-  return workshops.map(workshop => ({
-    params: { id: workshop.id },
-    props: { workshop }
-  }));
+  try {
+    const workshops = await getWorkshops();
+    return workshops.map(workshop => ({
+      params: { id: workshop.id },
+      props: { workshop }
+    }));
+  } catch (error) {
+    console.error('Error generating static paths:', error);
+    return [];
+  }
 }
 
 const { workshop } = Astro.props;
