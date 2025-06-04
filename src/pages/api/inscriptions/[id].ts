@@ -2,6 +2,8 @@ import type { APIRoute } from 'astro';
 import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { app } from '../../../firebase';
 
+export const prerender = false;
+
 const db = getFirestore(app);
 
 export const PUT: APIRoute = async ({ params, request }) => {
@@ -32,7 +34,7 @@ export const PUT: APIRoute = async ({ params, request }) => {
     }
 
     await updateDoc(doc(db, 'inscriptions', id), {
-      status: data.status,
+      ...data,
       updatedAt: new Date().toISOString()
     });
 

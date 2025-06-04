@@ -2,27 +2,18 @@ import type { APIRoute } from 'astro';
 import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
 import { app } from '../../../firebase';
 
+export const prerender = false;
+
 const db = getFirestore(app);
 
 export const GET: APIRoute = async () => {
   try {
     const inscriptionsCollection = collection(db, "inscriptions");
     const inscriptionsSnapshot = await getDocs(inscriptionsCollection);
-    const inscriptions = inscriptionsSnapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        name: data.name || '',
-        email: data.email || '',
-        phone: data.phone || '',
-        institution: data.institution || '',
-        workshopId: data.workshopId || '',
-        workshopName: data.workshopName || '',
-        status: data.status || 'pending',
-        createdAt: data.createdAt || new Date().toISOString(),
-        updatedAt: data.updatedAt
-      };
-    });
+    const inscriptions = inscriptionsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
     return new Response(JSON.stringify(inscriptions), {
       status: 200,
@@ -32,7 +23,9 @@ export const GET: APIRoute = async () => {
     });
   } catch (error) {
     console.error('Error al obtener inscripciones:', error);
-    return new Response(JSON.stringify({ error: 'Error al obtener inscripciones' }), {
+    return new Response(JSON.stringify({
+      error: 'Error al obtener inscripciones'
+    }), {
       status: 500,
       headers: {
         'Content-Type': 'application/json'
