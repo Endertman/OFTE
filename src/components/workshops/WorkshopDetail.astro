@@ -1,0 +1,88 @@
+---
+import type { Workshop } from '../../types/workshop';
+import { formatDate, isWorkshopActive } from '../../utils/workshop';
+import InscriptionForm from '../forms/InscriptionForm.astro';
+
+interface Props {
+  workshop: Workshop;
+}
+
+const { workshop } = Astro.props;
+const isActive = isWorkshopActive(workshop.date);
+---
+
+<section class="py-16 sm:py-20">
+  <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+    <div class="flex flex-col gap-12">
+      <div class="flex flex-col gap-8">
+        <div>
+          <h1 class="text-4xl font-medium tracking-tight sm:text-5xl">{workshop.name}</h1>
+          <p class="mt-4 text-xl text-primary-950/70 dark:text-primary-200/70">{formatDate(workshop.date)}</p>
+          <p class="mt-2 text-lg text-primary-950/70 dark:text-primary-200/70">{workshop.location}</p>
+          {!isActive && (
+            <p class="mt-2 text-lg text-red-600 dark:text-red-400">Este workshop ya ha finalizado</p>
+          )}
+        </div>
+        
+        <div class="aspect-w-16 aspect-h-9">
+          <img 
+            src={workshop.image} 
+            alt={workshop.name}
+            class="w-full object-cover rounded-xl"
+          />
+        </div>
+        
+        <div class="prose prose-lg dark:prose-invert">
+          <p>{workshop.description}</p>
+        </div>
+        
+        <div>
+          <h2 class="text-2xl font-medium">Temas a tratar</h2>
+          <ul role="list" class="mt-6 space-y-6">
+            {Array.isArray(workshop.features) ? workshop.features.map((feature: string) => (
+              <li class="flex gap-3">
+                <svg
+                  class="text-primary-600 dark:text-primary-400 h-6 w-6 flex-shrink-0"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M4 20q-.825 0-1.412-.587T2 18V6q0-.825.588-1.412T4 4h11q.475 0 .9.213t.7.587l4.5 6q.4.525.4 1.2t-.4 1.2l-4.5 6q-.275.375-.7.588T15 20z"/>
+                </svg>
+                <span>{feature}</span>
+              </li>
+            )) : (
+              <li class="text-primary-950/70 dark:text-primary-200/70">No hay características disponibles</li>
+            )}
+          </ul>
+        </div>
+
+        {isActive && (
+          <div class="mt-8">
+            <button
+              id="showFormBtn"
+              class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex items-center justify-center rounded-full border border-transparent px-8 py-4 text-lg font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              Inscribirse
+            </button>
+          </div>
+        )}
+
+        <div id="inscriptionFormContainer" class="hidden">
+          <InscriptionForm workshop={workshop} />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const showFormBtn = document.getElementById('showFormBtn');
+  const formContainer = document.getElementById('inscriptionFormContainer');
+
+  showFormBtn?.addEventListener('click', () => {
+    formContainer?.classList.remove('hidden');
+    showFormBtn.classList.add('hidden');
+  });
+</script> 

@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import WorkshopDetail from '../../components/workshops/WorkshopDetail.astro';
+import { getWorkshops } from '../../firebase';
+
+export async function getStaticPaths() {
+  const workshops = await getWorkshops();
+  return workshops.map(workshop => ({
+    params: { id: workshop.id },
+    props: { workshop }
+  }));
+}
+
+const { workshop } = Astro.props;
+---
+
+<Layout title={workshop.name} description={workshop.description}>
+  <WorkshopDetail workshop={workshop} />
+</Layout>

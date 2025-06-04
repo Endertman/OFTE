@@ -1,93 +1,31 @@
 ---
-/* Llevar esto a un archivo serarado que sirva para los dos componentes de manera que uno renderice todos y el segundo los tres proximos */
+import { getWorkshops } from '../../firebase';
+import { isWorkshopActive, formatDate } from '../../utils/workshop';
+import type { Workshop } from '../../types/workshop';
 
-const workshopstable = [
-  {
-    date: 'fecha',
-    description: 'Exercitation voluptate nisi mollit commodo. Sint dolore cupidatat velit anim consequat deserunt. Eiusmod esse amet sint sit nulla. Eu mollit Lorem dolore culpa ea officia excepteur sunt dolore aliquip officia. Commodo aliquip eu non officia aute deserunt dolor nisi amet occaecat.',
-    name: 'titulo',
-    action: 'Inscribirse',
-    features: ['Tema 1', 'Tema 2', 'Tema 3'],
-  },
-  {
-    date: 'fecha',
-    description: 'Exercitation voluptate nisi mollit commodo. Sint dolore cupidatat velit anim consequat deserunt. Eiusmod esse amet sint sit nulla. Eu mollit Lorem dolore culpa ea officia excepteur sunt dolore aliquip officia. Commodo aliquip eu non officia aute deserunt dolor nisi amet occaecat.',
-    name: 'titulo',
-    action: 'Inscribirse',
-    features: ['Tema 1', 'Tema 2', 'Tema 3'],
-  },
-  {
-    date: 'fecha',
-    description: 'Exercitation voluptate nisi mollit commodo. Sint dolore cupidatat velit anim consequat deserunt. Eiusmod esse amet sint sit nulla. Eu mollit Lorem dolore culpa ea officia excepteur sunt dolore aliquip officia. Commodo aliquip eu non officia aute deserunt dolor nisi amet occaecat.',
-    name: 'titulo',
-    action: 'Inscribirse',
-    features: ['Tema 1', 'Tema 2', 'Tema 3'],
-  },
-  {
-    date: 'fecha',
-    description: 'Exercitation voluptate nisi mollit commodo. Sint dolore cupidatat velit anim consequat deserunt. Eiusmod esse amet sint sit nulla. Eu mollit Lorem dolore culpa ea officia excepteur sunt dolore aliquip officia. Commodo aliquip eu non officia aute deserunt dolor nisi amet occaecat.',
-    name: 'titulo',
-    action: 'Inscribirse',
-    features: ['Tema 1', 'Tema 2', 'Tema 3'],
-  },
-  {
-    date: 'fecha',
-    description: 'Exercitation voluptate nisi mollit commodo. Sint dolore cupidatat velit anim consequat deserunt. Eiusmod esse amet sint sit nulla. Eu mollit Lorem dolore culpa ea officia excepteur sunt dolore aliquip officia. Commodo aliquip eu non officia aute deserunt dolor nisi amet occaecat.',
-    name: 'titulo',
-    action: 'Inscribirse',
-    features: ['Tema 1', 'Tema 2', 'Tema 3'],
-  },
-  {
-    date: 'fecha',
-    description: 'Exercitation voluptate nisi mollit commodo. Sint dolore cupidatat velit anim consequat deserunt. Eiusmod esse amet sint sit nulla. Eu mollit Lorem dolore culpa ea officia excepteur sunt dolore aliquip officia. Commodo aliquip eu non officia aute deserunt dolor nisi amet occaecat.',
-    name: 'titulo',
-    action: 'Inscribirse',
-    features: ['Tema 1', 'Tema 2', 'Tema 3'],
-  },
-  {
-    date: 'fecha',
-    description: 'Exercitation voluptate nisi mollit commodo. Sint dolore cupidatat velit anim consequat deserunt. Eiusmod esse amet sint sit nulla. Eu mollit Lorem dolore culpa ea officia excepteur sunt dolore aliquip officia. Commodo aliquip eu non officia aute deserunt dolor nisi amet occaecat.',
-    name: 'titulo',
-    action: 'Inscribirse',
-    features: ['Tema 1', 'Tema 2', 'Tema 3'],
-  },
-  {
-    date: 'fecha',
-    description: 'Exercitation voluptate nisi mollit commodo. Sint dolore cupidatat velit anim consequat deserunt. Eiusmod esse amet sint sit nulla. Eu mollit Lorem dolore culpa ea officia excepteur sunt dolore aliquip officia. Commodo aliquip eu non officia aute deserunt dolor nisi amet occaecat.',
-    name: 'titulo',
-    action: 'Inscribirse',
-    features: ['Tema 1', 'Tema 2', 'Tema 3'],
-  },
-  {
-    date: 'fecha',
-    description: 'Exercitation voluptate nisi mollit commodo. Sint dolore cupidatat velit anim consequat deserunt. Eiusmod esse amet sint sit nulla. Eu mollit Lorem dolore culpa ea officia excepteur sunt dolore aliquip officia. Commodo aliquip eu non officia aute deserunt dolor nisi amet occaecat.',
-    name: 'titulo',
-    action: 'Inscribirse',
-    features: ['Tema 1', 'Tema 2', 'Tema 3'],
-  },
-];
+const workshopstable = await getWorkshops();
 ---
 
 <section class="py-16 sm:py-20">
   <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
     <div class="-mt-8 grid gap-8 lg:mt-0 lg:grid-cols-3">
       {
-        workshopstable.map((item, idx) => (
+        workshopstable.map((item: Workshop, idx) => (
           <div
             class:list={[
               'relative flex flex-col gap-8 rounded-3xl p-8',
-              (idx % 2 === 1) && 'bg-primary-500/10 dark:bg-primary-400/10', // Flagged en pares
-      ]}
+              (idx % 2 === 1) && 'bg-primary-500/10 dark:bg-primary-400/10',
+            ]}
           >
             <div class="flex-1">
-              <h2 class="text-xl font-medium">{item.date}</h2>
+              <h2 class="text-xl font-medium">{formatDate(item.date)}</h2>
               <p class="mt-4 flex items-baseline">
                 <span class="text-4xl font-medium tracking-tight">{item.name}</span>
               </p>
               <p class="text-primary-950/70 dark:text-primary-200/70 mt-6">{item.description}</p>
 
               <ul role="list" class="mt-6 space-y-6">
-                {item.features.map((feature) => (
+                {item.features.map((feature: string) => (
                   <li class="flex gap-3">
                     <svg
                       class="text-primary-600 dark:text-primary-400 h-6 w-6 flex-shrink-0"
@@ -104,14 +42,22 @@ const workshopstable = [
               </ul>
             </div>
 
-            {/* agregrar logica para el boton de manera que funcione si no esta pasada la fecha */}
-
-            <a
-              href=""
-              class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex w-full items-center justify-center rounded-full border border-transparent px-5 py-3 text-base font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            >
-              Inscribirse
-            </a>
+            <div class="flex gap-4">
+              <a
+                href={`/workshops/${item.id}`}
+                class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex w-full items-center justify-center rounded-full border border-transparent px-5 py-3 text-base font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+              >
+                Ver más
+              </a>
+              {isWorkshopActive(item) && (
+                <a
+                  href={`/workshops/${item.id}`}
+                  class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex w-full items-center justify-center rounded-full border border-transparent px-5 py-3 text-base font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                >
+                  Inscribirse
+                </a>
+              )}
+            </div>
           </div>
         ))
       }

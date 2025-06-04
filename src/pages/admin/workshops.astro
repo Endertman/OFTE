@@ -1,0 +1,206 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getWorkshops } from '../../firebase';
+import { formatDate } from '../../utils/workshop';
+
+const workshops = await getWorkshops();
+---
+
+<Layout title="Gestionar Seminarios" description="Panel de administración de seminarios">
+  <section class="py-16 sm:py-20">
+    <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+      <div class="flex flex-col gap-12">
+        <div>
+          <h1 class="text-4xl font-medium tracking-tight sm:text-5xl">Gestionar Seminarios</h1>
+          <p class="mt-4 text-lg text-primary-950/70 dark:text-primary-200/70">
+            Crea y gestiona los seminarios de OFTE
+          </p>
+        </div>
+
+        <!-- Formulario para crear nuevo seminario -->
+        <div class="bg-primary-500/10 dark:bg-primary-400/10 rounded-3xl p-8">
+          <h2 class="text-2xl font-medium mb-6">Crear Nuevo Seminario</h2>
+          <form id="workshopForm" class="space-y-6">
+            <div>
+              <label for="name" class="block text-sm font-medium">Nombre del Seminario</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+              />
+            </div>
+
+            <div>
+              <label for="date" class="block text-sm font-medium">Fecha</label>
+              <input
+                type="datetime-local"
+                id="date"
+                name="date"
+                required
+                class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+              />
+            </div>
+
+            <div>
+              <label for="location" class="block text-sm font-medium">Ubicación</label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                required
+                class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+              />
+            </div>
+
+            <div>
+              <label for="image" class="block text-sm font-medium">URL de la Imagen</label>
+              <input
+                type="url"
+                id="image"
+                name="image"
+                required
+                class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+              />
+            </div>
+
+            <div>
+              <label for="description" class="block text-sm font-medium">Descripción</label>
+              <textarea
+                id="description"
+                name="description"
+                rows="4"
+                required
+                class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="features" class="block text-sm font-medium">Temas (uno por línea)</label>
+              <textarea
+                id="features"
+                name="features"
+                rows="4"
+                required
+                class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex items-center justify-center rounded-full border border-transparent px-6 py-3 text-base font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              Crear Seminario
+            </button>
+          </form>
+        </div>
+
+        <!-- Tabla de seminarios existentes -->
+        <div class="bg-primary-500/10 dark:bg-primary-400/10 rounded-3xl p-8">
+          <h2 class="text-2xl font-medium mb-6">Seminarios Existentes</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-primary-300 dark:divide-primary-700">
+              <thead>
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">Nombre</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">Fecha</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">Ubicación</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-primary-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-primary-300 dark:divide-primary-700">
+                {workshops.map((workshop) => (
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">{workshop.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">{formatDate(workshop.date)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">{workshop.location}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                        class="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300"
+                        data-workshop-id={workshop.id}
+                        onclick="editWorkshop(this.dataset.workshopId)"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        class="ml-4 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300"
+                        data-workshop-id={workshop.id}
+                        onclick="deleteWorkshop(this.dataset.workshopId)"
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const form = document.getElementById('workshopForm');
+  
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target as HTMLFormElement);
+    const workshopData = {
+      name: formData.get('name'),
+      date: formData.get('date'),
+      location: formData.get('location'),
+      image: formData.get('image'),
+      description: formData.get('description'),
+      features: (formData.get('features') as string).split('\n').filter(f => f.trim()),
+    };
+
+    try {
+      const response = await fetch('/api/workshops', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(workshopData),
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        alert('Error al crear el seminario');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al crear el seminario');
+    }
+  });
+
+  async function deleteWorkshop(id: string) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este seminario?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/workshops/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        alert('Error al eliminar el seminario');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al eliminar el seminario');
+    }
+  }
+
+  async function editWorkshop(id: string) {
+    // Implementar la lógica de edición
+    window.location.href = `/admin/workshops/${id}`;
+  }
+</script> 

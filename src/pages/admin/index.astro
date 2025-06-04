@@ -1,0 +1,51 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getWorkshops } from '../../firebase';
+import { getInscriptions } from '../../firebase';
+
+const workshops = await getWorkshops();
+const inscriptions = await getInscriptions();
+---
+
+<Layout title="Panel de Administración" description="Panel de administración de OFTE">
+  <section class="py-16 sm:py-20">
+    <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+      <div class="flex flex-col gap-12">
+        <div>
+          <h1 class="text-4xl font-medium tracking-tight sm:text-5xl">Panel de Administración</h1>
+          <p class="mt-4 text-lg text-primary-950/70 dark:text-primary-200/70">
+            Gestiona los seminarios y las inscripciones
+          </p>
+        </div>
+
+        <div class="grid gap-8 sm:grid-cols-2">
+          <a
+            href="/admin/workshops"
+            class="bg-primary-500/10 dark:bg-primary-400/10 flex flex-col gap-4 rounded-3xl p-8 transition hover:bg-primary-500/20 dark:hover:bg-primary-400/20"
+          >
+            <h2 class="text-2xl font-medium">Seminarios</h2>
+            <p class="text-primary-950/70 dark:text-primary-200/70">
+              {workshops.length} seminarios activos
+            </p>
+            <div class="mt-auto">
+              <span class="text-primary-600 dark:text-primary-400">Gestionar seminarios →</span>
+            </div>
+          </a>
+
+          <a
+            href="/admin/inscriptions"
+            class="bg-primary-500/10 dark:bg-primary-400/10 flex flex-col gap-4 rounded-3xl p-8 transition hover:bg-primary-500/20 dark:hover:bg-primary-400/20"
+          >
+            <h2 class="text-2xl font-medium">Inscripciones</h2>
+            <p class="text-primary-950/70 dark:text-primary-200/70">
+              {inscriptions.length} inscripciones totales
+            </p>
+            <div class="mt-auto">
+              <span class="text-primary-600 dark:text-primary-400">Ver inscripciones →</span>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout> 
