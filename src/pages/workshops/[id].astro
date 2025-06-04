@@ -12,6 +12,7 @@ export async function getStaticPaths() {
 }
 
 const { workshop } = Astro.props;
+export const prerender = true;
 ---
 
 <Layout title={workshop.name} description={workshop.description}>
