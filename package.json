@@ -12,6 +12,7 @@
   "dependencies": {
     "@alpinejs/collapse": "^3.14.9",
     "@astrojs/alpinejs": "^0.4.8",
+    "@astrojs/netlify": "^6.5.5",
     "@astrojs/node": "^9.2.2",
     "@astrojs/tailwind": "^6.0.2",
     "@fontsource/inter": "^5.2.5",
