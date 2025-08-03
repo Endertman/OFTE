@@ -3,19 +3,10 @@ import { getWorkshops } from '../../firebase.server';
 import { formatDate } from '../../utils/workshop';
 import type { Workshop } from '../../types/workshop';
 
-console.log('WorkshopsTable.astro: INICIO');
 let workshopstable: Workshop[] = [];
 try {
   workshopstable = await getWorkshops();
   console.log('WorkshopsTable.astro: workshopstable obtenido', workshopstable);
-  if (!Array.isArray(workshopstable)) {
-    console.log('WorkshopsTable.astro: workshopstable NO es un array');
-  } else if (workshopstable.length === 0) {
-    console.log('WorkshopsTable.astro: workshopstable está vacío');
-  } else {
-    console.log('WorkshopsTable.astro: workshopstable tiene datos');
-    console.log('Primer workshop:', workshopstable[0]);
-  }
 } catch (err) {
   console.error('WorkshopsTable.astro: ERROR al obtener workshops', err);
 }
@@ -25,37 +16,34 @@ try {
   <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
     <div class="-mt-8 grid gap-8 lg:mt-0 lg:grid-cols-3">
       {
-        workshopstable.map((item, idx) => (
-          <div
-            class:list={[
-              'relative flex flex-col gap-8 rounded-3xl p-8',
-              (idx % 2 === 1) && 'bg-primary-500/10 dark:bg-primary-400/10',
-            ]}
-          >
-            <div class="flex-1">
-              <h2 class="text-xl font-medium">{formatDate(item.date)}</h2>
-              <p class="mt-4 flex items-baseline">
-                <span class="text-4xl font-medium tracking-tight">{item.name}</span>
-              </p>
-              <p class="text-primary-950/70 dark:text-primary-200/70 mt-6">{item.description}</p>
-              <ul role="list" class="mt-6 space-y-6">
-                {item.features && item.features.map((feature: string) => (
-                  <li class="flex gap-3">
-                    <svg
-                      class="text-primary-600 dark:text-primary-400 h-6 w-6 flex-shrink-0"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                    </svg>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        ))
+        workshopstable.length === 0
+          ? <div>No hay workshops disponibles.</div>
+          : workshopstable.map((item, idx) => (
+              <div
+                class:list={[
+                  'relative flex flex-col gap-8 rounded-3xl p-8',
+                  (idx % 2 === 1) && 'bg-primary-500/10 dark:bg-primary-400/10',
+                ]}
+              >
+                <div class="flex-1">
+                  <h2 class="text-xl font-medium">{formatDate(item.date)}</h2>
+                  <p class="mt-4 flex items-baseline">
+                    <span class="text-4xl font-medium tracking-tight">{item.name}</span>
+                  </p>
+                  <p class="text-primary-950/70 dark:text-primary-200/70 mt-6">{item.description}</p>
+                  <ul role="list" class="mt-6 space-y-6">
+                    {item.features && item.features.length > 0
+                      ? item.features.map((feature: string) => (
+                          <li class="flex gap-3">
+                            <span>{feature}</span>
+                          </li>
+                        ))
+                      : <li>No hay características.</li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            ))
       }
     </div>
   </div>

@@ -3,17 +3,17 @@ import type { Workshop } from './types/workshop';
 export async function getWorkshops(): Promise<Workshop[]> {
   const snapshot = await adminDb.collection('workshops').get();
   return snapshot.docs
-    .map((doc: FirebaseFirestore.DocumentSnapshot) => {
+    .map((doc) => {
       const data = doc.data();
       if (!data) return null;
       return {
         id: doc.id,
-        name: data.name,
-        date: data.date,
-        location: data.location,
-        image: data.image,
-        description: data.description,
-        features: data.features,
+        name: data.name ?? '',
+        date: data.date ?? '',
+        location: data.location ?? '',
+        image: data.image ?? '',
+        description: data.description ?? '',
+        features: Array.isArray(data.features) ? data.features : [],
       } as Workshop;
     })
     .filter(Boolean) as Workshop[];
