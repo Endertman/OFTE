@@ -6,6 +6,7 @@ import type { Workshop } from '../../types/workshop';
 let workshopstable: Workshop[] = [];
 try {
   workshopstable = await getWorkshops();
+  workshopstable.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   console.log('WorkshopsTable.astro: workshopstable obtenido', workshopstable);
 } catch (err) {
   console.error('WorkshopsTable.astro: ERROR al obtener workshops', err);

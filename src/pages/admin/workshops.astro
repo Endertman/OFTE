@@ -3,7 +3,9 @@ import Layout from '../../layouts/Layout.astro';
 import { getWorkshops } from '../../firebase.server';
 import { formatDate } from '../../utils/workshop';
 
-const workshops = await getWorkshops();
+let workshops = await getWorkshops();
+// Ordenar por fecha descendente (más reciente primero)
+workshops.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 ---
 
 <Layout title="Gestionar Seminarios" description="Panel de administración de seminarios">
@@ -57,7 +59,7 @@ const workshops = await getWorkshops();
             <div>
               <label for="image" class="block text-sm font-medium">URL de la Imagen</label>
               <input
-                type="url"
+                type="text"
                 id="image"
                 name="image"
                 required
@@ -144,33 +146,33 @@ const workshops = await getWorkshops();
 
 <script>
   const form = document.getElementById('workshopForm');
-  
+
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    const formData = new FormData(e.target as HTMLFormElement);
+
+    const formData = new FormData(e.target);
     const workshopData = {
       name: formData.get('name'),
       date: formData.get('date'),
       location: formData.get('location'),
       image: formData.get('image'),
       description: formData.get('description'),
-      features: (formData.get('features') as string).split('\n').filter(f => f.trim()),
+      features: (formData.get('features') || '').toString().split('\n').filter(f => f.trim()),
     };
 
     try {
       const response = await fetch('/api/workshops', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(workshopData),
       });
 
       if (response.ok) {
+        form.reset();
         window.location.reload();
       } else {
-        alert('Error al crear el seminario');
+        const errorMsg = await response.text();
+        alert('Error al crear el seminario: ' + errorMsg);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -178,16 +180,11 @@ const workshops = await getWorkshops();
     }
   });
 
-  async function deleteWorkshop(id: string) {
-    if (!confirm('¿Estás seguro de que deseas eliminar este seminario?')) {
-      return;
-    }
+  async function deleteWorkshop(id) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este seminario?')) return;
 
     try {
-      const response = await fetch(`/api/workshops/${id}`, {
-        method: 'DELETE',
-      });
-
+      const response = await fetch(`/api/workshops/${id}`, { method: 'DELETE' });
       if (response.ok) {
         window.location.reload();
       } else {
@@ -199,8 +196,7 @@ const workshops = await getWorkshops();
     }
   }
 
-  async function editWorkshop(id: string) {
-    // Implementar la lógica de edición
+  async function editWorkshop(id) {
     window.location.href = `/admin/workshops/${id}`;
   }
-</script> 
+</script>
