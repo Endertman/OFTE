@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import WorkshopDetail from '../../components/workshops/WorkshopDetail.astro';
-import { getWorkshops } from '../../firebase';
+import { getWorkshops } from '../../firebase.server';
 
 export async function getStaticPaths() {
   try {

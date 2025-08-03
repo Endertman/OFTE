@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getWorkshops } from '../../firebase';
+import { getWorkshops } from '../../firebase.server';
 import { getInscriptions } from '../../firebase';
 
 const workshops = await getWorkshops();

@@ -1,16 +1,15 @@
 import type { APIRoute } from 'astro';
-import { getFirestore, collection, getDocs, addDoc } from "firebase/firestore";
-import { app } from '../../../firebase';
+import { adminDb } from '../../../firebase.server';
 
 export const prerender = false;
 
-const db = getFirestore(app);
+// Usar adminDb directamente
 
 export const GET: APIRoute = async () => {
   try {
-    const inscriptionsCollection = collection(db, "inscriptions");
-    const inscriptionsSnapshot = await getDocs(inscriptionsCollection);
-    const inscriptions = inscriptionsSnapshot.docs.map(doc => ({
+
+    const inscriptionsSnapshot = await adminDb.collection('inscriptions').get();
+    const inscriptions = inscriptionsSnapshot.docs.map((doc: FirebaseFirestore.DocumentSnapshot) => ({
       id: doc.id,
       ...doc.data()
     }));
@@ -61,7 +60,8 @@ export const POST: APIRoute = async ({ request }) => {
     };
 
     // Guardar en Firestore
-    const docRef = await addDoc(collection(db, 'inscriptions'), inscriptionData);
+
+    const docRef = await adminDb.collection('inscriptions').add(inscriptionData);
 
     return new Response(JSON.stringify({
       success: true,

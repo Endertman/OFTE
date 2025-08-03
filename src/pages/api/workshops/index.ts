@@ -1,8 +1,7 @@
 import type { APIRoute } from 'astro';
-import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
-import { app } from '../../../firebase';
+import { adminDb } from '../../../firebase.server';
 
-const db = getFirestore(app);
+// Usar adminDb directamente
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -24,7 +23,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Guardar en Firestore
-    const docRef = await addDoc(collection(db, 'workshops'), data);
+    const docRef = await adminDb.collection('workshops').add(data);
 
     return new Response(JSON.stringify({
       success: true,
@@ -50,9 +49,8 @@ export const POST: APIRoute = async ({ request }) => {
 
 export const GET: APIRoute = async () => {
   try {
-    const workshopsCollection = collection(db, 'workshops');
-    const workshopsSnapshot = await getDocs(workshopsCollection);
-    const workshops = workshopsSnapshot.docs.map(doc => ({
+    const workshopsSnapshot = await adminDb.collection('workshops').get();
+    const workshops = workshopsSnapshot.docs.map((doc: FirebaseFirestore.DocumentSnapshot) => ({
       id: doc.id,
       ...doc.data()
     }));

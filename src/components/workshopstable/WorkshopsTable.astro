@@ -1,16 +1,16 @@
 ---
-import { getWorkshops } from '../../firebase';
+import { getWorkshops } from '../../firebase.server';
 import { isWorkshopActive, formatDate } from '../../utils/workshop';
 import type { Workshop } from '../../types/workshop';
 
-const workshopstable = await getWorkshops();
+const workshopstable: Workshop[] = await getWorkshops();
 ---
 
 <section class="py-16 sm:py-20">
   <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
     <div class="-mt-8 grid gap-8 lg:mt-0 lg:grid-cols-3">
       {
-        workshopstable.map((item: Workshop, idx) => (
+        workshopstable.map((item, idx) => (
           <div
             class:list={[
               'relative flex flex-col gap-8 rounded-3xl p-8',
