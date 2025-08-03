@@ -1,9 +1,24 @@
 ---
 import { getWorkshops } from '../../firebase.server';
-import { isWorkshopActive, formatDate } from '../../utils/workshop';
+import { formatDate } from '../../utils/workshop';
 import type { Workshop } from '../../types/workshop';
 
-const workshopstable: Workshop[] = await getWorkshops();
+console.log('WorkshopsTable.astro: INICIO');
+let workshopstable: Workshop[] = [];
+try {
+  workshopstable = await getWorkshops();
+  console.log('WorkshopsTable.astro: workshopstable obtenido', workshopstable);
+  if (!Array.isArray(workshopstable)) {
+    console.log('WorkshopsTable.astro: workshopstable NO es un array');
+  } else if (workshopstable.length === 0) {
+    console.log('WorkshopsTable.astro: workshopstable está vacío');
+  } else {
+    console.log('WorkshopsTable.astro: workshopstable tiene datos');
+    console.log('Primer workshop:', workshopstable[0]);
+  }
+} catch (err) {
+  console.error('WorkshopsTable.astro: ERROR al obtener workshops', err);
+}
 ---
 
 <section class="py-16 sm:py-20">
@@ -23,9 +38,8 @@ const workshopstable: Workshop[] = await getWorkshops();
                 <span class="text-4xl font-medium tracking-tight">{item.name}</span>
               </p>
               <p class="text-primary-950/70 dark:text-primary-200/70 mt-6">{item.description}</p>
-
               <ul role="list" class="mt-6 space-y-6">
-                {item.features.map((feature: string) => (
+                {item.features && item.features.map((feature: string) => (
                   <li class="flex gap-3">
                     <svg
                       class="text-primary-600 dark:text-primary-400 h-6 w-6 flex-shrink-0"
@@ -34,29 +48,11 @@ const workshopstable: Workshop[] = await getWorkshops();
                       fill="currentColor"
                       aria-hidden="true"
                     >
-                      <path d="M4 20q-.825 0-1.412-.587T2 18V6q0-.825.588-1.412T4 4h11q.475 0 .9.213t.7.587l4.5 6q.4.525.4 1.2t-.4 1.2l-4.5 6q-.275.375-.7.588T15 20z"/>
                     </svg>
                     <span>{feature}</span>
                   </li>
                 ))}
               </ul>
-            </div>
-
-            <div class="flex gap-4">
-              <a
-                href={`/workshops/${item.id}`}
-                class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex w-full items-center justify-center rounded-full border border-transparent px-5 py-3 text-base font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-              >
-                Ver más
-              </a>
-              {isWorkshopActive(item) && (
-                <a
-                  href={`/workshops/${item.id}`}
-                  class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex w-full items-center justify-center rounded-full border border-transparent px-5 py-3 text-base font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                >
-                  Inscribirse
-                </a>
-              )}
             </div>
           </div>
         ))
