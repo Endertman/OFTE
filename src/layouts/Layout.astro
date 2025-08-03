@@ -28,7 +28,7 @@ const { description, title } = Astro.props;
     <GoogleAnalytics />
   </head>
   <body class="bg-primary-50 text-primary-950 dark:bg-primary-950 dark:text-primary-200 antialiased transition min-h-screen relative">
-    <div id="fondo" class="fixed inset-0 -z-10 bg-[url('/assets/fondo.png')] bg-no-repeat bg-cover transition-opacity duration-300" :class="{ 'opacity-[0.20]': !$store.theme.isDark, 'opacity-[0.08]': $store.theme.isDark }"></div>
+    <div id="fondo" class="fixed inset-0 -z-10 bg-[url('/public/assets/fondo.png')] bg-no-repeat bg-cover transition-opacity duration-300" :class="{ 'opacity-[0.20]': !$store.theme.isDark, 'opacity-[0.08]': $store.theme.isDark }"></div>
     <Header />
     <main class="relative">
       <slot />
