@@ -23,3 +23,7 @@ export const prerender = true;
 <Layout title={workshop.name} description={workshop.description}>
   <WorkshopDetail workshop={workshop} />
 </Layout>
+
+---
+console.log('WorkshopDetail.astro: workshop.image', workshop.image);
+---

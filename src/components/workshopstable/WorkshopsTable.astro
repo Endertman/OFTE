@@ -22,12 +22,12 @@ try {
           : workshopstable.map((item, idx) => (
               <div
                 class:list={[
-                  'relative flex flex-col gap-8 rounded-3xl p-8',
+                  'relative h-full flex flex-col rounded-3xl p-8',
                   (idx % 2 === 1) && 'bg-primary-500/10 dark:bg-primary-400/10',
                 ]}
               >
-                <div class="flex-1">
-                  <h2 class="text-xl font-medium">{formatDate(item.date)}</h2>
+                <div class="flex-1 flex flex-col">
+                  <h2 class="text-xl font-medium h-10 flex items-center">{formatDate(item.date)}</h2>
                   <p class="mt-4 flex items-baseline">
                     <span class="text-4xl font-medium tracking-tight">{item.name}</span>
                   </p>
@@ -42,6 +42,14 @@ try {
                       : <li>No hay características.</li>
                     }
                   </ul>
+                  <div class="mt-auto mt-12 flex gap-4">
+                    <a
+                      href={`/workshops/${item.id}`}
+                      class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex items-center justify-center rounded-full border border-transparent px-6 py-3 text-base font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                    >
+                      Ver más
+                    </a>
+                  </div>
                 </div>
               </div>
             ))
