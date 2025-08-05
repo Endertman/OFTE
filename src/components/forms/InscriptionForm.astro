@@ -9,104 +9,98 @@ const { workshop } = Astro.props;
 ---
 
 <div class="relative">
-  <div id="notification" class="hidden fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50">
-    <div class="flex items-center">
-      <div class="flex-shrink-0">
-        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      <div class="ml-3">
-        <p id="notificationMessage" class="text-sm font-medium"></p>
-      </div>
+  <div id="notification" class="hidden fixed top-8 left-1/2 -translate-x-1/2 bg-primary dark:bg-gray-900 border border-primary-300 dark:border-primary-700 p-6 rounded-xl shadow-2xl z-50 flex items-center gap-4 min-w-[320px] max-w-[90vw]">
+    <div id="notificationIcon"></div>
+    <div class="flex-1">
+      <p id="notificationMessage" class="text-lg font-semibold"></p>
     </div>
+    <button id="closeNotificationBtn" class="text-2xl font-bold text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-2" aria-label="Cerrar notificación">&times;</button>
   </div>
 
-  <form id="inscriptionForm" class="space-y-6">
-    <div>
-      <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Nombre completo</label>
-      <input
-        type="text"
-        name="name"
-        id="name"
-        required
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600"
-      />
-    </div>
+  <div id="inscriptionFormContainer">
+    <form id="inscriptionForm" class="space-y-6">
+      <div>
+        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Nombre completo</label>
+        <input
+          type="text"
+          name="name"
+          id="name"
+          required
+          class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+        />
+      </div>
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Correo electrónico</label>
+        <input
+          type="email"
+          name="email"
+          id="email"
+          required
+          class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+        />
+      </div>
+      <div>
+        <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Teléfono</label>
+        <input
+          type="tel"
+          name="phone"
+          id="phone"
+          required
+          class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+        />
+      </div>
+      <div>
+        <label for="institution" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Institución</label>
+        <input
+          type="text"
+          name="institution"
+          id="institution"
+          required
+          class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+        />
+      </div>
+      <div>
+        <label for="comments" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Comentarios adicionales</label>
+        <textarea
+          name="comments"
+          id="comments"
+          rows="3"
+          class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+        ></textarea>
+      </div>
+      <input type="hidden" name="workshopId" value={workshop.id} />
+      <input type="hidden" name="workshopName" value={workshop.name} />
 
-    <div>
-      <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Correo electrónico</label>
-      <input
-        type="email"
-        name="email"
-        id="email"
-        required
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600"
-      />
-    </div>
-
-    <div>
-      <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Teléfono</label>
-      <input
-        type="tel"
-        name="phone"
-        id="phone"
-        required
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600"
-      />
-    </div>
-
-    <div>
-      <label for="institution" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Institución</label>
-      <input
-        type="text"
-        name="institution"
-        id="institution"
-        required
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600"
-      />
-    </div>
-
-    <div>
-      <label for="comments" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Comentarios adicionales</label>
-      <textarea
-        name="comments"
-        id="comments"
-        rows="3"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:bg-gray-800 dark:border-gray-600"
-      ></textarea>
-    </div>
-
-    <input type="hidden" name="workshopId" value={workshop.id} />
-    <input type="hidden" name="workshopName" value={workshop.name} />
-
-    <div class="flex gap-4">
-      <button
-        type="submit"
-        class="flex-1 bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex items-center justify-center rounded-full border border-transparent px-8 py-4 text-lg font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-      >
-        Enviar inscripción
-      </button>
-      <button
-        type="button"
-        id="cancelBtn"
-        class="flex-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 focus-visible:outline-gray-600 dark:focus-visible:outline-gray-400 inline-flex items-center justify-center rounded-full border border-transparent px-8 py-4 text-lg font-medium text-gray-700 dark:text-gray-200 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-      >
-        Cancelar
-      </button>
-    </div>
-  </form>
+      <div class="flex gap-4">
+        <button
+          type="submit"
+          class="flex-1 bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex items-center justify-center rounded-full border border-transparent px-8 py-4 text-lg font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          Enviar inscripción
+        </button>
+        <button
+          type="button"
+          id="cancelBtn"
+          class="flex-1 bg-primary-200 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex items-center justify-center rounded-full border border-transparent px-8 py-4 text-lg font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+        >
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script>
-  const form = document.getElementById('inscriptionForm') as HTMLFormElement;
-  const notification = document.getElementById('notification') as HTMLDivElement;
-  const notificationMessage = document.getElementById('notificationMessage') as HTMLParagraphElement;
-  const cancelBtn = document.getElementById('cancelBtn') as HTMLButtonElement;
-  const formContainer = document.getElementById('inscriptionFormContainer') as HTMLDivElement;
-  const showFormBtn = document.getElementById('showFormBtn') as HTMLButtonElement;
+  const form = document.getElementById('inscriptionForm');
+  const notification = document.getElementById('notification');
+  const notificationMessage = document.getElementById('notificationMessage');
+  const notificationIcon = document.getElementById('notificationIcon');
+  const closeNotificationBtn = document.getElementById('closeNotificationBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
 
-  function showNotification(message: string, isSuccess: boolean) {
+  let notificationTimeout;
+
+  function showNotification(message, isSuccess) {
     notification.classList.remove('hidden');
     notification.classList.remove('bg-red-100', 'text-red-800', 'bg-green-100', 'text-green-800');
     notification.classList.add(
@@ -114,44 +108,49 @@ const { workshop } = Astro.props;
       isSuccess ? 'text-green-800' : 'text-red-800'
     );
     notificationMessage.textContent = message;
-    
-    setTimeout(() => {
+    notificationIcon.innerHTML = isSuccess
+      ? `<svg class="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`
+      : `<svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>`;
+
+    clearTimeout(notificationTimeout);
+    notificationTimeout = setTimeout(() => {
       notification.classList.add('hidden');
-    }, 5000);
+    }, 5000); // 5 segundos
   }
+
+  closeNotificationBtn.addEventListener('click', () => {
+    notification.classList.add('hidden');
+    clearTimeout(notificationTimeout);
+  });
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
 
     try {
       const response = await fetch('/api/inscriptions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
       if (response.ok) {
         showNotification('¡Inscripción enviada con éxito!', true);
         form.reset();
-        formContainer.classList.add('hidden');
-        showFormBtn.classList.remove('hidden');
       } else {
         const error = await response.json();
         throw new Error(error.error || 'Error al enviar la inscripción');
       }
     } catch (error) {
-      showNotification(error instanceof Error ? error.message : 'Hubo un error al enviar la inscripción. Por favor, intenta nuevamente.', false);
+      showNotification(
+        error instanceof Error ? error.message : 'Hubo un error al enviar la inscripción. Por favor, intenta nuevamente.',
+        false
+      );
     }
   });
 
   cancelBtn.addEventListener('click', () => {
     form.reset();
-    formContainer.classList.add('hidden');
-    showFormBtn.classList.remove('hidden');
   });
-</script> 
+</script>

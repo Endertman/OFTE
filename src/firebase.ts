@@ -58,7 +58,19 @@ export async function getWorkshops(): Promise<Workshop[]> {
 export async function getNextWorkshops(limit = 3): Promise<Workshop[]> {
   try {
     const workshops = await getWorkshops();
-    return workshops.slice(0, limit);
+    const now = new Date();
+
+    const future = workshops
+      .filter(w => new Date(w.date) >= now)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const past = workshops
+      .filter(w => new Date(w.date) < now)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    const result = [...future, ...past].slice(0, limit);
+
+    return result;
   } catch (error) {
     console.error("Error al obtener próximos workshops:", error);
     return [];

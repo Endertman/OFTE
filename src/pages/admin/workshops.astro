@@ -79,6 +79,17 @@ workshops.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
             </div>
 
             <div>
+              <label for="short_description" class="block text-sm font-medium">Descripción corta (menor a 100 palabras)</label>
+              <textarea
+                id="short_description"
+                name="short_description"
+                rows="4"
+                required
+                class="mt-1 block w-full rounded-lg border border-primary-300 bg-white px-4 py-2 text-primary-950 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 dark:border-primary-700 dark:bg-primary-900 dark:text-primary-200"
+              ></textarea>
+            </div>
+
+            <div>
               <label for="features" class="block text-sm font-medium">Temas (uno por línea)</label>
               <textarea
                 id="features"
@@ -98,7 +109,6 @@ workshops.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
           </form>
         </div>
 
-        <!-- Tabla de seminarios existentes -->
         <div class="bg-primary-500/10 dark:bg-primary-400/10 rounded-3xl p-8">
           <h2 class="text-2xl font-medium mb-6">Seminarios Existentes</h2>
           <div class="overflow-x-auto">
@@ -145,12 +155,12 @@ workshops.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
 </Layout>
 
 <script>
-  const form = document.getElementById('workshopForm');
+  const form = document.getElementById('workshopForm') as HTMLFormElement | null;
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const formData = new FormData(e.target);
+    const formData = new FormData((e.target as HTMLFormElement) || undefined);
     const workshopData = {
       name: formData.get('name'),
       date: formData.get('date'),
@@ -180,23 +190,23 @@ workshops.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     }
   });
 
-  async function deleteWorkshop(id) {
-    if (!confirm('¿Estás seguro de que deseas eliminar este seminario?')) return;
+  // async function deleteWorkshop(id) {
+  //   if (!confirm('¿Estás seguro de que deseas eliminar este seminario?')) return;
 
-    try {
-      const response = await fetch(`/api/workshops/${id}`, { method: 'DELETE' });
-      if (response.ok) {
-        window.location.reload();
-      } else {
-        alert('Error al eliminar el seminario');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error al eliminar el seminario');
-    }
-  }
+  //   try {
+  //     const response = await fetch(`/api/workshops/${id}`, { method: 'DELETE' });
+  //     if (response.ok) {
+  //       window.location.reload();
+  //     } else {
+  //       alert('Error al eliminar el seminario');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //     alert('Error al eliminar el seminario');
+  //   }
+  // }
 
-  async function editWorkshop(id) {
-    window.location.href = `/admin/workshops/${id}`;
-  }
+  // async function editWorkshop(id) {
+  //   window.location.href = `/admin/workshops/${id}`;
+  // }
 </script>

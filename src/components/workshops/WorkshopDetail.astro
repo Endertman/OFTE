@@ -20,7 +20,9 @@ const isActive = isWorkshopActive(workshop.date);
           <p class="mt-4 text-xl text-primary-950/70 dark:text-primary-200/70">{formatDate(workshop.date)}</p>
           <p class="mt-2 text-lg text-primary-950/70 dark:text-primary-200/70">{workshop.location}</p>
           {!isActive && (
-            <p class="mt-2 text-lg text-red-600 dark:text-red-400">Este workshop ya ha finalizado</p>
+            <p class="mt-4 text-2xl font-extrabold" style="color: #af0909;">
+              Este workshop ya ha finalizado
+            </p>
           )}
         </div>
         
