@@ -32,17 +32,19 @@ const workshops = await getNextWorkshops(3);
                 <p class="text-primary-950/70 dark:text-primary-200/70">{formatDate(workshop.date)}</p>
                 <p class="text-primary-950/70 dark:text-primary-200/70">{workshop.location}</p>
               </div>
-              <div class="mt-auto flex gap-4">
+              <div class="mt-auto flex justify-center gap-4">
                 <a
                   href={`/workshops/${workshop.id}`}
-                  class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex items-center justify-center rounded-full border border-transparent px-6 py-3 text-base font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                  class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex items-center justify-center rounded-full border border-transparent px-16 py-3 text-base font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                 >
                   Ver más
                 </a>
+              </div>
+              <div class="mt-auto flex justify-center gap-4">
                 {isWorkshopActive(workshop.date) && (
                   <a
                     href={`/workshops/${workshop.id}`}
-                    class="bg-white dark:bg-primary-900 hover:bg-gray-50 dark:hover:bg-primary-800 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 inline-flex items-center justify-center rounded-full border border-primary-600 dark:border-primary-400 px-6 py-3 text-base font-medium text-primary-600 dark:text-primary-400 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+                    class="bg-white dark:bg-primary-900 hover:bg-gray-50 dark:hover:bg-primary-800 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 inline-flex items-center justify-center rounded-full border border-primary-600 dark:border-primary-400 px-14 py-3 text-base font-medium text-primary-600 dark:text-primary-400 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   >
                     Inscribirse
                   </a>

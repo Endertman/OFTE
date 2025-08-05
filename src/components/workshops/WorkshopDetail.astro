@@ -59,7 +59,7 @@ const isActive = isWorkshopActive(workshop.date);
         </div>
 
         {isActive && (
-          <div class="mt-8">
+          <div class="mt-8 flex justify-center sm:justify-start">
             <button
               id="showFormBtn"
               class="bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400 dark:text-primary-950 inline-flex items-center justify-center rounded-full border border-transparent px-8 py-4 text-lg font-medium text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -85,4 +85,4 @@ const isActive = isWorkshopActive(workshop.date);
     formContainer?.classList.remove('hidden');
     showFormBtn.classList.add('hidden');
   });
-</script> 
+</script>

@@ -5,6 +5,7 @@ export interface Workshop {
   location: string;
   image: string;
   description: string;
+  short_description: string; 
   features: string[];
 }
 

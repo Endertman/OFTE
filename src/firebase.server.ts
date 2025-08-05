@@ -13,6 +13,7 @@ export async function getWorkshops(): Promise<Workshop[]> {
         location: data.location ?? '',
         image: data.image ?? '',
         description: data.description ?? '',
+        short_description: data.short_description ?? '', 
         features: Array.isArray(data.features) ? data.features : [],
       } as Workshop;
     })
