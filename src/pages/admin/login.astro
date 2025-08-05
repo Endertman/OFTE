@@ -1,0 +1,69 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Iniciar sesión" description="Acceso administrativo OFTE">
+  <section class="py-16 sm:py-20 flex justify-center items-center min-h-[60vh]">
+    <div class="bg-primary-500/10 dark:bg-primary-400/10 rounded-3xl p-8 max-w-md w-full flex flex-col gap-8 items-center">
+      <h1 class="text-3xl font-bold mb-4">Acceso administrativo</h1>
+      <form id="loginForm" class="w-full flex flex-col gap-4">
+        <input
+          type="email"
+          id="email"
+          placeholder="Correo institucional"
+          required
+          class="w-full rounded-lg border border-primary-300 dark:border-primary-700 px-4 py-3 text-base"
+        />
+        <input
+          type="password"
+          id="password"
+          placeholder="Contraseña"
+          required
+          class="w-full rounded-lg border border-primary-300 dark:border-primary-700 px-4 py-3 text-base"
+        />
+        <button
+          type="submit"
+          class="w-full bg-primary-600 dark:bg-primary-400 hover:bg-primary-700 dark:hover:bg-primary-300 rounded-full px-6 py-3 text-base font-medium text-white transition"
+        >
+          Iniciar sesión
+        </button>
+      </form>
+      <p id="loginError" class="text-red-600 text-center mt-2"></p>
+    </div>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://esm.sh/firebase/app";
+    import { getAuth, signInWithEmailAndPassword } from "https://esm.sh/firebase/auth";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCgXe4yo_R-KvNblWygDFn3TQ5CIxyyexc",
+      authDomain: "ofte-landing-unab.firebaseapp.com",
+      projectId: "ofte-landing-unab",
+      storageBucket: "ofte-landing-unab.firebasestorage.app",
+      messagingSenderId: "76733059112",
+      appId: "1:76733059112:web:2e9343a1229d124503a51d",
+      measurementId: "G-XVTG14TKMD"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const form = document.getElementById('loginForm');
+    const loginError = document.getElementById('loginError');
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      loginError.textContent = "";
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "/admin";
+      } catch (err) {
+        loginError.textContent = "Correo o contraseña incorrectos";
+      }
+    };
+  </script>
+</Layout>
+
