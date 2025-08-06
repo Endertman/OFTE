@@ -17,6 +17,7 @@ Este proyecto contiene la página web de la OFTE, desarrollada con [Astro](https
 - **Astro** — Framework estático moderno
 - **Firebase Hosting** — Para despliegue y backend de inscripciones
 - **Firestore (Firebase)** — Base de datos en tiempo real
+- **Firebase Auth** - Autenticación de usuarios para control de herramientas de creacion e incripciones
 - **GitHub Actions** — Deploy automático desde rama `main`
 - **Google Analytics** — Para medir visitas y participación
 
