@@ -167,6 +167,7 @@ workshops.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       location: formData.get('location'),
       image: formData.get('image'),
       description: formData.get('description'),
+      short_description: formData.get('short_description'),
       features: (formData.get('features') || '').toString().split('\n').filter(f => f.trim()),
     };
 

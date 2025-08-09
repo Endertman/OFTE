@@ -35,7 +35,7 @@ const isActive = isWorkshopActive(workshop.date);
         </div>
         
         <div class="prose prose-lg dark:prose-invert">
-          <p>{workshop.description}</p>
+          <span set:html={workshop.description}/>
         </div>
         
         <div>
