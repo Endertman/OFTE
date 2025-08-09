@@ -1,19 +1,29 @@
 ---
 const team = [
   {
-    name: 'persona i+1',
-    image: 'public/assets/team-1.webp',
-    job: 'Cargo i+1',
+    name: 'Bastián Astudillo',
+    mail: 'correo@uandresbello.edu',
+    job: 'Fundador',
   },
   {
-    name: 'persona i+1',
-    image: 'public/assets/team-2.webp',
-    job: 'Cargo i+1',
+    name: 'Matheo Escobar',
+    mail: 'm.escobarvergar@uandresbello.edu',
+    job: 'Fundador',
   },
   {
-    name: 'persona i+1',
-    image: 'public/assets/team-3.webp',
-    job: 'Cargo i+1',
+    name: 'Rodrigo Encina',
+    mail: 'correo@uandresbello.edu',
+    job: 'Fundador',
+  },
+  {
+    name: 'Pascale Tilleria',
+    mail: 'p.tilleriabustos@uandresbello.edu',
+    job: 'Fundador',
+  },
+  {
+    name: 'Endert Guerero',
+    mail: 'e.guerrerocamacho@uandresbello.edu',
+    job: 'Pagina y difusión web',
   },
 ];
 ---
@@ -27,7 +37,6 @@ const team = [
           team.map((item) => (
             <li class="border-primary-900/10 dark:border-primary-300/10 rounded-3xl border px-6 py-8">
               <div class="space-y-6">
-                <img class="mx-auto h-auto w-16 rounded-full" src={item.image} alt={item.name} />
                 <div class="text-center">
                   <h3 class="text-lg font-medium">{item.name}</h3>
                   <p class="text-primary-950/70 dark:text-primary-200/70 text-base">{item.job}</p>
