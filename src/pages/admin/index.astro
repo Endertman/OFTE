@@ -1,17 +1,15 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getWorkshops } from '../../firebase.server';
-import { getInscriptions } from '../../firebase';
 
 const workshops = await getWorkshops();
-const inscriptions = await getInscriptions();
 ---
 
 <Layout title="Panel de Administración" description="Panel de administración de OFTE">
   <script type="module" is:inline>
     import { initializeApp } from "https://esm.sh/firebase/app";
     import { getAuth, onAuthStateChanged } from "https://esm.sh/firebase/auth";
-
+    import { getFirestore, collection, getDocs } from "https://esm.sh/firebase/firestore";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCgXe4yo_R-KvNblWygDFn3TQ5CIxyyexc",
@@ -25,10 +23,25 @@ const inscriptions = await getInscriptions();
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    async function loadInscriptionsCount() {
+      try {
+        const inscriptionsCollection = collection(db, "inscriptions");
+        const inscriptionsSnapshot = await getDocs(inscriptionsCollection);
+        const count = inscriptionsSnapshot.size;
+        document.getElementById('inscriptions-count').textContent = `${count} inscripciones totales`;
+      } catch (error) {
+        console.error('Error al obtener inscripciones:', error);
+        document.getElementById('inscriptions-count').textContent = 'Error al cargar';
+      }
+    }
 
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         window.location.href = "/admin/login";
+      } else {
+        loadInscriptionsCount();
       }
     });
   </script>
@@ -62,8 +75,8 @@ const inscriptions = await getInscriptions();
             class="bg-primary-500/10 dark:bg-primary-400/10 flex flex-col gap-4 rounded-3xl p-8 transition hover:bg-primary-500/20 dark:hover:bg-primary-400/20"
           >
             <h2 class="text-2xl font-medium">Inscripciones</h2>
-            <p class="text-primary-950/70 dark:text-primary-200/70">
-              {inscriptions.length} inscripciones totales
+            <p id="inscriptions-count" class="text-primary-950/70 dark:text-primary-200/70">
+              Cargando...
             </p>
             <div class="mt-auto">
               <span class="text-primary-600 dark:text-primary-400">Ver inscripciones →</span>
