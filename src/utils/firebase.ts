@@ -14,7 +14,7 @@ export async function getInscriptions(): Promise<Inscription[]> {
         id: doc.id,
         name: data.name || '',
         email: data.email || '',
-        phone: data.phone || '',
+        degree: data.degree || '',
         institution: data.institution || '',
         workshopId: data.workshopId || '',
         workshopName: data.workshopName || '',

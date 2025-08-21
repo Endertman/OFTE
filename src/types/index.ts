@@ -2,7 +2,7 @@ export interface Inscription {
   id: string;
   name: string;
   email: string;
-  phone: string;
+  degree: string;
   institution: string;
   workshopId: string;
   workshopName: string;

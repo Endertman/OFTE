@@ -38,7 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
     const data = await request.json();
     
     // Validar datos requeridos
-    const requiredFields = ['name', 'email', 'phone', 'institution', 'workshopId', 'workshopName'];
+    const requiredFields = ['name', 'email', 'degree', 'institution', 'workshopId', 'workshopName'];
     for (const field of requiredFields) {
       if (!data[field]) {
         return new Response(JSON.stringify({
