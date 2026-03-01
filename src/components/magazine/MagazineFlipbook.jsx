@@ -132,9 +132,11 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
     const onTouchStart = useCallback((e) => {
         if (e.touches.length === 2) {
             e.preventDefault();
+            e.stopPropagation();
             pinchStartDist.current = getTouchDist(e.touches);
             pinchStartZoom.current = zoom;
         } else if (e.touches.length === 1 && zoom > 1) {
+            e.stopPropagation();
             panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
             panStartOffset.current = { ...panOffset };
         }
@@ -143,11 +145,14 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
     const onTouchMove = useCallback((e) => {
         if (e.touches.length === 2 && pinchStartDist.current) {
             e.preventDefault();
+            e.stopPropagation();
             const dist = getTouchDist(e.touches);
             const newZoom = Math.min(3, Math.max(1, pinchStartZoom.current * (dist / pinchStartDist.current)));
             setZoom(newZoom);
             if (newZoom <= 1) setPanOffset({ x: 0, y: 0 });
         } else if (e.touches.length === 1 && zoom > 1 && panStart.current) {
+            e.preventDefault();
+            e.stopPropagation();
             const dx = e.touches[0].clientX - panStart.current.x;
             const dy = e.touches[0].clientY - panStart.current.y;
             setPanOffset({
@@ -157,10 +162,13 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
         }
     }, [zoom]);
 
-    const onTouchEnd = useCallback(() => {
+    const onTouchEnd = useCallback((e) => {
+        if (zoom > 1) {
+            e.stopPropagation();
+        }
         pinchStartDist.current = null;
         panStart.current = null;
-    }, []);
+    }, [zoom]);
 
     // Fullscreen API
     const toggleFullscreen = useCallback(() => {
@@ -262,9 +270,9 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
             {/* Flipbook container */}
             <div
                 ref={zoomRef}
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
+                onTouchStartCapture={onTouchStart}
+                onTouchMoveCapture={onTouchMove}
+                onTouchEndCapture={onTouchEnd}
                 style={{
                     position: 'relative',
                     width: containerWidth + 'px',
@@ -274,6 +282,17 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                     touchAction: zoom > 1 ? 'none' : 'pan-y',
                 }}
             >
+                {/* Overlay que bloquea interacción con el flipbook cuando hay zoom */}
+                {zoom > 1 && (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            zIndex: 10,
+                            cursor: 'grab',
+                        }}
+                    />
+                )}
                 <div
                     style={{
                         width: '100%',
@@ -298,9 +317,10 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                         usePortrait={isMobile}
                         startPage={0}
                         autoSize={false}
-                        clickEventForward={true}
-                        useMouseEvents={true}
-                        showPageCorners={true}
+                        clickEventForward={zoom <= 1}
+                        useMouseEvents={zoom <= 1}
+                        showPageCorners={zoom <= 1}
+                        swipeDistance={zoom > 1 ? 99999 : 30}
                     >
                         {pages.map((src, i) => (
                             <Page
