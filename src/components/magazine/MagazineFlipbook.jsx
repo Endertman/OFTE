@@ -137,7 +137,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
     const flipBookRef = useRef(null);
     const containerRef = useRef(null);
     const flipbookWrapperRef = useRef(null);
-    const overlayRef = useRef(null); // SHIELD REF
+    const overlayRef = useRef(null); // SHIELD REF - intercepts all touch events on mobile
 
     const [dims, setDims] = useState({ width: 400, height: 566, usePortrait: false });
     const [currentPage, setCurrentPage] = useState(0);
@@ -150,9 +150,9 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
     const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
     const [isPinching, setIsPinching] = useState(false);
 
-    // Touch tracking ref for the shield (no re-renders)
+    // Touch tracking ref for the shield (no re-renders during gestures)
     const touchState = useRef({
-        mode: 'none',
+        mode: 'none', // 'none' | 'waiting' | 'swiping' | 'pinching'
         startX: 0,
         startY: 0,
         startTime: 0,
@@ -209,6 +209,8 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
     }, []);
 
     // ── NATIVE TOUCH HANDLER ON THE OVERLAY (THE SHIELD) ──
+    // This overlay intercepts all touch events on mobile, preventing the flipbook
+    // from receiving them directly. We then manually handle swipes and pinch-to-zoom.
     useEffect(() => {
         const el = overlayRef.current;
         if (!el || !isMobile) return;
@@ -218,6 +220,8 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
 
         const onStart = (e) => {
             const ts = touchState.current;
+
+            // Two-finger touch: start pinch-to-zoom
             if (e.touches.length === 2) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -226,6 +230,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                 ts.pinchStartDist = getTouchDistance(e.touches[0], e.touches[1]);
                 ts.pinchStartScale = zoomScaleRef.current;
 
+                // Calculate zoom origin relative to the overlay
                 const rect = el.getBoundingClientRect();
                 const mid = getTouchMidpoint(e.touches[0], e.touches[1]);
                 setZoomOrigin({
@@ -235,10 +240,11 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                 return;
             }
 
+            // Single-finger touch
             if (e.touches.length === 1) {
                 if (zoomScaleRef.current > 1) {
                     // Block taps/swipes if already zoomed in (prevents accidental flips)
-                    e.preventDefault(); 
+                    e.preventDefault();
                 } else {
                     ts.mode = 'waiting';
                     ts.startX = e.touches[0].clientX;
@@ -251,6 +257,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
         const onMove = (e) => {
             const ts = touchState.current;
 
+            // If a second finger is added during a gesture, switch to pinching
             if (e.touches.length === 2 && ts.mode !== 'pinching') {
                 e.preventDefault();
                 setIsPinching(true);
@@ -260,6 +267,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                 return;
             }
 
+            // Handle active pinch gesture
             if (ts.mode === 'pinching' && e.touches.length === 2) {
                 e.preventDefault();
                 const dist = getTouchDistance(e.touches[0], e.touches[1]);
@@ -269,6 +277,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                 return;
             }
 
+            // Detect horizontal swipe from waiting state
             if (ts.mode === 'waiting' && e.touches.length === 1) {
                 const dx = Math.abs(e.touches[0].clientX - ts.startX);
                 const dy = Math.abs(e.touches[0].clientY - ts.startY);
@@ -279,14 +288,16 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                 }
             }
 
+            // Prevent scroll while swiping or zoomed
             if (ts.mode === 'swiping' || zoomScaleRef.current > 1) {
-                e.preventDefault(); // Prevent scroll while swiping or zoomed
+                e.preventDefault();
             }
         };
 
         const onEnd = (e) => {
             const ts = touchState.current;
 
+            // Complete swipe gesture
             if (ts.mode === 'swiping') {
                 const touch = e.changedTouches[0];
                 const dx = touch.clientX - ts.startX;
@@ -298,14 +309,17 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                 }
             }
 
+            // Complete pinch gesture
             if (ts.mode === 'pinching') {
                 setIsPinching(false);
+                // Snap back to 1x if zoom is close to 1
                 if (zoomScaleRef.current < 1.15) {
                     setZoomScale(1);
                     setZoomOrigin({ x: 50, y: 50 });
                 }
             }
 
+            // Reset mode when all fingers are lifted
             if (e.touches.length === 0) {
                 ts.mode = 'none';
             }
@@ -326,6 +340,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
 
     const onFlip = (e) => {
         setCurrentPage(e.data);
+        // Reset zoom when flipping
         setZoomScale(1);
         setZoomOrigin({ x: 50, y: 50 });
     };
@@ -353,6 +368,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
         }
     };
 
+    // Reset zoom on double-tap
     const handleDoubleTap = useCallback(() => {
         if (zoomScale > 1) {
             setZoomScale(1);
@@ -400,7 +416,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                     minHeight: isFullscreen ? 'auto' : dims.height + 40,
                     flex: isFullscreen ? '1' : 'none',
                     position: 'relative',
-                    touchAction: 'none', // Bloqueamos comportamientos nativos
+                    touchAction: 'none', // Block native touch behaviors
                     overflow: 'hidden',
                     transform: isMobile && zoomScale > 1 ? `scale(${zoomScale})` : 'none',
                     transformOrigin: isMobile && zoomScale > 1 ? `${zoomOrigin.x}% ${zoomOrigin.y}%` : 'center center',
@@ -420,17 +436,17 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                         maxShadowOpacity={0.5}
                         drawShadow={true}
                         showCover={true}
-                        mobileScrollSupport={false} // Desactivamos el soporte táctil de la librería
+                        mobileScrollSupport={false} // Disable library's touch handling
                         usePortrait={dims.usePortrait}
                         onFlip={onFlip}
                         className="magazine-flipbook"
                         style={{}}
                         startPage={0}
                         flippingTime={600}
-                        useMouseEvents={!isMobile} // Mouse en desktop, bloqueado en móvil
-                        swipeDistance={9999} // Valor alto para asegurar que no se dispare solo
+                        useMouseEvents={!isMobile} // Mouse on desktop, blocked on mobile
+                        swipeDistance={9999} // High value to prevent library swipe detection
                         showPageCorners={!isMobile}
-                        disableFlipByClick={isMobile} // Previene clicks accidentales en móvil
+                        disableFlipByClick={isMobile} // Prevent accidental clicks on mobile
                     >
                         {pages.map((url, i) => (
                             <Page
@@ -444,7 +460,10 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                     </HTMLFlipBook>
                 )}
 
-                {/* --- EL ESCUDO TÁCTIL --- */}
+                {/* --- THE TOUCH SHIELD --- */}
+                {/* On mobile, this overlay sits on top of the flipbook and intercepts
+                    all touch events. This prevents the flipbook from triggering page
+                    flips during pinch-to-zoom gestures. */}
                 {isMobile && (
                     <div
                         ref={overlayRef}
@@ -500,7 +519,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                             borderRadius: '12px',
                             fontSize: '12px',
                             fontFamily: 'Inter, sans-serif',
-                            zIndex: 30, // Por encima del escudo
+                            zIndex: 30,
                             pointerEvents: 'none',
                         }}
                     >
@@ -546,7 +565,16 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                         e.currentTarget.style.color = '#127369';
                     }}
                 >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
                         <path d="m15 18-6-6 6-6" />
                     </svg>
                 </button>
@@ -591,12 +619,21 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                         e.currentTarget.style.color = '#127369';
                     }}
                 >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    >
                         <path d="m9 18 6-6-6-6" />
                     </svg>
                 </button>
 
-                {/* Fullscreen button */}
+                {/* Fullscreen button (mobile only) */}
                 {isMobile && (
                     <button
                         onClick={toggleFullscreen}
@@ -616,14 +653,34 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                         }}
                     >
                         {isFullscreen ? (
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            /* Exit fullscreen icon */
+                            <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
                                 <path d="M8 3v3a2 2 0 0 1-2 2H3" />
                                 <path d="M21 8h-3a2 2 0 0 1-2-2V3" />
                                 <path d="M3 16h3a2 2 0 0 1 2 2v3" />
                                 <path d="M16 21v-3a2 2 0 0 1 2-2h3" />
                             </svg>
                         ) : (
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            /* Enter fullscreen icon */
+                            <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
                                 <path d="M8 3H5a2 2 0 0 0-2 2v3" />
                                 <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
                                 <path d="M3 16v3a2 2 0 0 0 2 2h3" />
@@ -651,23 +708,25 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
 
             {/* Styles */}
             <style>{`
-                @keyframes spin {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-                .magazine-flipbook {
-                    box-shadow: 0 4px 24px rgba(11, 43, 39, 0.25);
-                    border-radius: 4px;
-                }
-                .magazine-flipbook,
-                .magazine-flipbook * {
-                    -webkit-user-select: none;
-                    user-select: none;
-                }
-                .magazine-flipbook .stf__wrapper {
-                    overflow: hidden !important;
-                }
-            `}</style>
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .magazine-flipbook {
+          box-shadow: 0 4px 24px rgba(11, 43, 39, 0.25);
+          border-radius: 4px;
+        }
+        /* Prevent native touch behaviors on the flipbook */
+        .magazine-flipbook,
+        .magazine-flipbook * {
+          touch-action: none !important;
+          -webkit-user-select: none;
+          user-select: none;
+        }
+        .magazine-flipbook .stf__wrapper {
+          overflow: hidden !important;
+        }
+      `}</style>
         </div>
     );
 }
