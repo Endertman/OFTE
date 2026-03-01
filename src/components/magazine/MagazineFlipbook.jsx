@@ -150,6 +150,12 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
     const pinchStartDist = useRef(0);
     const pinchStartScale = useRef(1);
 
+    // Refs that mirror state so touch handlers never read stale closures
+    const zoomScaleRef = useRef(zoomScale);
+    const isPinchingRef = useRef(isPinching);
+    useEffect(() => { zoomScaleRef.current = zoomScale; }, [zoomScale]);
+    useEffect(() => { isPinchingRef.current = isPinching; }, [isPinching]);
+
     const pages = getPageUrls(folder, pageCount, filePattern);
 
     // Responsive resize handler
@@ -186,7 +192,9 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
         };
     }, [handleResize]);
 
-    // Pinch-to-zoom touch handlers (mobile only)
+    // Pinch-to-zoom touch handlers (mobile only).
+    // Reads zoomScaleRef / isPinchingRef so the effect only depends on [isMobile],
+    // avoiding listener churn during rapid pinch gestures.
     useEffect(() => {
         const wrapper = flipbookWrapperRef.current;
         if (!wrapper || !isMobile) return;
@@ -197,7 +205,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                 e.stopPropagation();
                 setIsPinching(true);
                 pinchStartDist.current = getTouchDistance(e.touches[0], e.touches[1]);
-                pinchStartScale.current = zoomScale;
+                pinchStartScale.current = zoomScaleRef.current;
 
                 // Calculate zoom origin relative to the wrapper
                 const rect = wrapper.getBoundingClientRect();
@@ -210,7 +218,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
         };
 
         const onTouchMove = (e) => {
-            if (e.touches.length === 2 && isPinching) {
+            if (e.touches.length === 2 && isPinchingRef.current) {
                 e.preventDefault();
                 e.stopPropagation();
                 const currentDist = getTouchDistance(e.touches[0], e.touches[1]);
@@ -221,10 +229,10 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
         };
 
         const onTouchEnd = (e) => {
-            if (e.touches.length < 2 && isPinching) {
+            if (e.touches.length < 2 && isPinchingRef.current) {
                 setIsPinching(false);
                 // If zoom is close to 1, snap back
-                if (zoomScale < 1.15) {
+                if (zoomScaleRef.current < 1.15) {
                     setZoomScale(1);
                     setZoomOrigin({ x: 50, y: 50 });
                 }
@@ -240,7 +248,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
             wrapper.removeEventListener('touchmove', onTouchMove);
             wrapper.removeEventListener('touchend', onTouchEnd);
         };
-    }, [isMobile, isPinching, zoomScale]);
+    }, [isMobile]);
 
     const flipPrev = () => {
         flipBookRef.current?.pageFlip()?.flipPrev();
