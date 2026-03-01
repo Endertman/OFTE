@@ -137,6 +137,8 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
     const flipBookRef = useRef(null);
     const containerRef = useRef(null);
     const flipbookWrapperRef = useRef(null);
+    const overlayRef = useRef(null); // SHIELD REF
+
     const [dims, setDims] = useState({ width: 400, height: 566, usePortrait: false });
     const [currentPage, setCurrentPage] = useState(0);
     const [ready, setReady] = useState(false);
@@ -147,14 +149,20 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
     const [zoomScale, setZoomScale] = useState(1);
     const [zoomOrigin, setZoomOrigin] = useState({ x: 50, y: 50 });
     const [isPinching, setIsPinching] = useState(false);
-    const pinchStartDist = useRef(0);
-    const pinchStartScale = useRef(1);
+
+    // Touch tracking ref for the shield (no re-renders)
+    const touchState = useRef({
+        mode: 'none',
+        startX: 0,
+        startY: 0,
+        startTime: 0,
+        pinchStartDist: 0,
+        pinchStartScale: 1,
+    });
 
     // Refs that mirror state so touch handlers never read stale closures
     const zoomScaleRef = useRef(zoomScale);
-    const isPinchingRef = useRef(isPinching);
     useEffect(() => { zoomScaleRef.current = zoomScale; }, [zoomScale]);
-    useEffect(() => { isPinchingRef.current = isPinching; }, [isPinching]);
 
     const pages = getPageUrls(folder, pageCount, filePattern);
 
@@ -181,7 +189,6 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
         const onFsChange = () => {
             const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
             setIsFullscreen(!!fsEl);
-            // Recalculate dimensions after fullscreen toggle
             setTimeout(handleResize, 100);
         };
         document.addEventListener('fullscreenchange', onFsChange);
@@ -192,75 +199,133 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
         };
     }, [handleResize]);
 
-    // Pinch-to-zoom touch handlers (mobile only).
-    // Reads zoomScaleRef / isPinchingRef so the effect only depends on [isMobile],
-    // avoiding listener churn during rapid pinch gestures.
-    useEffect(() => {
-        const wrapper = flipbookWrapperRef.current;
-        if (!wrapper || !isMobile) return;
+    // Flip controls (must be declared before the touch effect)
+    const flipPrev = useCallback(() => {
+        flipBookRef.current?.pageFlip()?.flipPrev();
+    }, []);
 
-        const onTouchStart = (e) => {
+    const flipNext = useCallback(() => {
+        flipBookRef.current?.pageFlip()?.flipNext();
+    }, []);
+
+    // ── NATIVE TOUCH HANDLER ON THE OVERLAY (THE SHIELD) ──
+    useEffect(() => {
+        const el = overlayRef.current;
+        if (!el || !isMobile) return;
+
+        const SWIPE_THRESHOLD = 50; // px
+        const SWIPE_TIME = 400; // ms
+
+        const onStart = (e) => {
+            const ts = touchState.current;
             if (e.touches.length === 2) {
                 e.preventDefault();
                 e.stopPropagation();
                 setIsPinching(true);
-                pinchStartDist.current = getTouchDistance(e.touches[0], e.touches[1]);
-                pinchStartScale.current = zoomScaleRef.current;
+                ts.mode = 'pinching';
+                ts.pinchStartDist = getTouchDistance(e.touches[0], e.touches[1]);
+                ts.pinchStartScale = zoomScaleRef.current;
 
-                // Calculate zoom origin relative to the wrapper
-                const rect = wrapper.getBoundingClientRect();
+                const rect = el.getBoundingClientRect();
                 const mid = getTouchMidpoint(e.touches[0], e.touches[1]);
                 setZoomOrigin({
                     x: ((mid.x - rect.left) / rect.width) * 100,
                     y: ((mid.y - rect.top) / rect.height) * 100,
                 });
+                return;
+            }
+
+            if (e.touches.length === 1) {
+                if (zoomScaleRef.current > 1) {
+                    // Block taps/swipes if already zoomed in (prevents accidental flips)
+                    e.preventDefault(); 
+                } else {
+                    ts.mode = 'waiting';
+                    ts.startX = e.touches[0].clientX;
+                    ts.startY = e.touches[0].clientY;
+                    ts.startTime = Date.now();
+                }
             }
         };
 
-        const onTouchMove = (e) => {
-            if (e.touches.length === 2 && isPinchingRef.current) {
+        const onMove = (e) => {
+            const ts = touchState.current;
+
+            if (e.touches.length === 2 && ts.mode !== 'pinching') {
                 e.preventDefault();
-                e.stopPropagation();
-                const currentDist = getTouchDistance(e.touches[0], e.touches[1]);
-                const ratio = currentDist / pinchStartDist.current;
-                const newScale = Math.min(Math.max(pinchStartScale.current * ratio, 1), 4);
+                setIsPinching(true);
+                ts.mode = 'pinching';
+                ts.pinchStartDist = getTouchDistance(e.touches[0], e.touches[1]);
+                ts.pinchStartScale = zoomScaleRef.current;
+                return;
+            }
+
+            if (ts.mode === 'pinching' && e.touches.length === 2) {
+                e.preventDefault();
+                const dist = getTouchDistance(e.touches[0], e.touches[1]);
+                const ratio = dist / ts.pinchStartDist;
+                const newScale = Math.min(Math.max(ts.pinchStartScale * ratio, 1), 4);
                 setZoomScale(newScale);
+                return;
+            }
+
+            if (ts.mode === 'waiting' && e.touches.length === 1) {
+                const dx = Math.abs(e.touches[0].clientX - ts.startX);
+                const dy = Math.abs(e.touches[0].clientY - ts.startY);
+                // If finger moved enough horizontally, commit to swipe
+                if (dx > 15 && dx > dy) {
+                    e.preventDefault();
+                    ts.mode = 'swiping';
+                }
+            }
+
+            if (ts.mode === 'swiping' || zoomScaleRef.current > 1) {
+                e.preventDefault(); // Prevent scroll while swiping or zoomed
             }
         };
 
-        const onTouchEnd = (e) => {
-            if (e.touches.length < 2 && isPinchingRef.current) {
+        const onEnd = (e) => {
+            const ts = touchState.current;
+
+            if (ts.mode === 'swiping') {
+                const touch = e.changedTouches[0];
+                const dx = touch.clientX - ts.startX;
+                const elapsed = Date.now() - ts.startTime;
+
+                if (Math.abs(dx) > SWIPE_THRESHOLD && elapsed < SWIPE_TIME) {
+                    if (dx < 0) flipNext();
+                    else flipPrev();
+                }
+            }
+
+            if (ts.mode === 'pinching') {
                 setIsPinching(false);
-                // If zoom is close to 1, snap back
                 if (zoomScaleRef.current < 1.15) {
                     setZoomScale(1);
                     setZoomOrigin({ x: 50, y: 50 });
                 }
             }
+
+            if (e.touches.length === 0) {
+                ts.mode = 'none';
+            }
         };
 
-        wrapper.addEventListener('touchstart', onTouchStart, { passive: false });
-        wrapper.addEventListener('touchmove', onTouchMove, { passive: false });
-        wrapper.addEventListener('touchend', onTouchEnd, { passive: false });
+        el.addEventListener('touchstart', onStart, { passive: false });
+        el.addEventListener('touchmove', onMove, { passive: false });
+        el.addEventListener('touchend', onEnd, { passive: false });
+        el.addEventListener('touchcancel', onEnd, { passive: false });
 
         return () => {
-            wrapper.removeEventListener('touchstart', onTouchStart);
-            wrapper.removeEventListener('touchmove', onTouchMove);
-            wrapper.removeEventListener('touchend', onTouchEnd);
+            el.removeEventListener('touchstart', onStart);
+            el.removeEventListener('touchmove', onMove);
+            el.removeEventListener('touchend', onEnd);
+            el.removeEventListener('touchcancel', onEnd);
         };
-    }, [isMobile]);
-
-    const flipPrev = () => {
-        flipBookRef.current?.pageFlip()?.flipPrev();
-    };
-
-    const flipNext = () => {
-        flipBookRef.current?.pageFlip()?.flipNext();
-    };
+    }, [isMobile, flipNext, flipPrev]);
 
     const onFlip = (e) => {
         setCurrentPage(e.data);
-        // Reset zoom when flipping
         setZoomScale(1);
         setZoomOrigin({ x: 50, y: 50 });
     };
@@ -288,7 +353,6 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
         }
     };
 
-    // Reset zoom on double-tap
     const handleDoubleTap = useCallback(() => {
         if (zoomScale > 1) {
             setZoomScale(1);
@@ -336,7 +400,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                     minHeight: isFullscreen ? 'auto' : dims.height + 40,
                     flex: isFullscreen ? '1' : 'none',
                     position: 'relative',
-                    touchAction: 'pan-y',
+                    touchAction: 'none', // Bloqueamos comportamientos nativos
                     overflow: 'hidden',
                     transform: isMobile && zoomScale > 1 ? `scale(${zoomScale})` : 'none',
                     transformOrigin: isMobile && zoomScale > 1 ? `${zoomOrigin.x}% ${zoomOrigin.y}%` : 'center center',
@@ -356,17 +420,17 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                         maxShadowOpacity={0.5}
                         drawShadow={true}
                         showCover={true}
-                        mobileScrollSupport={!isPinching}
+                        mobileScrollSupport={false} // Desactivamos el soporte táctil de la librería
                         usePortrait={dims.usePortrait}
                         onFlip={onFlip}
                         className="magazine-flipbook"
                         style={{}}
                         startPage={0}
                         flippingTime={600}
-                        useMouseEvents={true}
-                        swipeDistance={isPinching ? 9999 : 30}
-                        showPageCorners={true}
-                        disableFlipByClick={isPinching}
+                        useMouseEvents={!isMobile} // Mouse en desktop, bloqueado en móvil
+                        swipeDistance={9999} // Valor alto para asegurar que no se dispare solo
+                        showPageCorners={!isMobile}
+                        disableFlipByClick={isMobile} // Previene clicks accidentales en móvil
                     >
                         {pages.map((url, i) => (
                             <Page
@@ -380,6 +444,20 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                     </HTMLFlipBook>
                 )}
 
+                {/* --- EL ESCUDO TÁCTIL --- */}
+                {isMobile && (
+                    <div
+                        ref={overlayRef}
+                        style={{
+                            position: 'absolute',
+                            inset: 0,
+                            zIndex: 20,
+                            touchAction: 'none',
+                            cursor: zoomScale > 1 ? 'grab' : 'default',
+                        }}
+                    />
+                )}
+
                 {/* Loading placeholder while flipbook initializes */}
                 {!ready && (
                     <div
@@ -391,6 +469,8 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                             height: dims.height,
                             background: '#10403b',
                             borderRadius: '8px',
+                            position: 'absolute',
+                            zIndex: 10,
                         }}
                     >
                         <svg
@@ -420,7 +500,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                             borderRadius: '12px',
                             fontSize: '12px',
                             fontFamily: 'Inter, sans-serif',
-                            zIndex: 10,
+                            zIndex: 30, // Por encima del escudo
                             pointerEvents: 'none',
                         }}
                     >
@@ -466,16 +546,7 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                         e.currentTarget.style.color = '#127369';
                     }}
                 >
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m15 18-6-6 6-6" />
                     </svg>
                 </button>
@@ -520,21 +591,12 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                         e.currentTarget.style.color = '#127369';
                     }}
                 >
-                    <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m9 18 6-6-6-6" />
                     </svg>
                 </button>
 
-                {/* Fullscreen button (mobile only) */}
+                {/* Fullscreen button */}
                 {isMobile && (
                     <button
                         onClick={toggleFullscreen}
@@ -554,34 +616,14 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
                         }}
                     >
                         {isFullscreen ? (
-                            /* Exit fullscreen icon */
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M8 3v3a2 2 0 0 1-2 2H3" />
                                 <path d="M21 8h-3a2 2 0 0 1-2-2V3" />
                                 <path d="M3 16h3a2 2 0 0 1 2 2v3" />
                                 <path d="M16 21v-3a2 2 0 0 1 2-2h3" />
                             </svg>
                         ) : (
-                            /* Enter fullscreen icon */
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M8 3H5a2 2 0 0 0-2 2v3" />
                                 <path d="M21 8V5a2 2 0 0 0-2-2h-3" />
                                 <path d="M3 16v3a2 2 0 0 0 2 2h3" />
@@ -609,25 +651,23 @@ export default function MagazineFlipbook({ folder, pageCount, filePattern, title
 
             {/* Styles */}
             <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .magazine-flipbook {
-          box-shadow: 0 4px 24px rgba(11, 43, 39, 0.25);
-          border-radius: 4px;
-        }
-        /* Prevent pinch-zoom and double-tap zoom on the flipbook area */
-        .magazine-flipbook,
-        .magazine-flipbook * {
-          touch-action: pan-y !important;
-          -webkit-user-select: none;
-          user-select: none;
-        }
-        .magazine-flipbook .stf__wrapper {
-          overflow: hidden !important;
-        }
-      `}</style>
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+                .magazine-flipbook {
+                    box-shadow: 0 4px 24px rgba(11, 43, 39, 0.25);
+                    border-radius: 4px;
+                }
+                .magazine-flipbook,
+                .magazine-flipbook * {
+                    -webkit-user-select: none;
+                    user-select: none;
+                }
+                .magazine-flipbook .stf__wrapper {
+                    overflow: hidden !important;
+                }
+            `}</style>
         </div>
     );
 }
