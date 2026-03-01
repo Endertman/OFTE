@@ -1,0 +1,21 @@
+---
+import MagazineCard from "./MagazineCard.astro";
+import { magazines } from "../../data/magazines";
+---
+
+<section class="pb-16 sm:pb-20">
+    <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8">
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {
+                magazines.map((mag) => (
+                    <MagazineCard
+                        slug={mag.slug}
+                        title={mag.title}
+                        description={mag.description}
+                        coverImage={mag.coverImage}
+                    />
+                ))
+            }
+        </div>
+    </div>
+</section>

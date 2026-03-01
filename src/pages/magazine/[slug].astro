@@ -1,0 +1,52 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import { magazines } from "../../data/magazines";
+import MagazineFlipbook from "../../components/magazine/MagazineFlipbook.jsx";
+
+const { slug } = Astro.params;
+const magazine = magazines.find((m) => m.slug === slug);
+
+if (!magazine) {
+    return Astro.redirect("/404");
+}
+---
+
+<Layout
+    description={`Leer: ${magazine.title}`}
+    title={`${magazine.title} · OFTE`}
+>
+    <section class="py-10 sm:py-16">
+        <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            <!-- Back button -->
+            <a
+                href="/magazine"
+                class="group mb-8 inline-flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-400 transition-colors hover:text-primary-800 dark:hover:text-primary-200"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="transition-transform group-hover:-translate-x-1"
+                >
+                    <path d="m15 18-6-6 6-6"></path>
+                </svg>
+                Volver a revistas
+            </a>
+
+            <!-- Flipbook -->
+            <MagazineFlipbook
+                client:only="react"
+                folder={magazine.folder}
+                pageCount={magazine.pageCount}
+                filePattern={magazine.filePattern}
+                title={magazine.title}
+            />
+        </div>
+    </section>
+</Layout>
