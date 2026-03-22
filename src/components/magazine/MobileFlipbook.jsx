@@ -255,10 +255,6 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
         }
     }, [zoomScale]);
 
-    let displayPage = currentPage;
-    if (currentPage >= pageCount) displayPage = pageCount;
-    else if (currentPage <= 0) displayPage = 1;
-
     return (
         <div
             ref={containerRef}
@@ -378,13 +374,10 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                     gap: '16px', marginTop: isFullscreen ? '12px' : '20px', flexWrap: 'wrap',
                 }}
             >
-                <button onClick={flipPrev} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '50%', border: '1px solid #396d67', background: 'transparent', color: '#127369', cursor: 'pointer', transition: 'all 0.2s ease' }} onMouseEnter={e => { e.currentTarget.style.background = '#127369'; e.currentTarget.style.color = '#f0f0f0'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#127369'; }}>
+                <button onClick={flipPrev} aria-label="Anterior" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '50%', border: '1px solid #396d67', background: 'transparent', color: '#127369', cursor: 'pointer', transition: 'all 0.2s ease' }} onMouseEnter={e => { e.currentTarget.style.background = '#127369'; e.currentTarget.style.color = '#f0f0f0'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#127369'; }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
                 </button>
-                <span style={{ fontSize: '0.875rem', color: '#637371', fontFamily: 'Inter, sans-serif', minWidth: '100px', textAlign: 'center', userSelect: 'none' }}>
-                    Página {displayPage} de {pageCount}
-                </span>
-                <button onClick={flipNext} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '50%', border: '1px solid #396d67', background: 'transparent', color: '#127369', cursor: 'pointer', transition: 'all 0.2s ease' }} onMouseEnter={e => { e.currentTarget.style.background = '#127369'; e.currentTarget.style.color = '#f0f0f0'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#127369'; }}>
+                <button onClick={flipNext} aria-label="Siguiente" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '50%', border: '1px solid #396d67', background: 'transparent', color: '#127369', cursor: 'pointer', transition: 'all 0.2s ease' }} onMouseEnter={e => { e.currentTarget.style.background = '#127369'; e.currentTarget.style.color = '#f0f0f0'; }} onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#127369'; }}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                 </button>
                 <button onClick={toggleFullscreen} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '50%', border: '1px solid #396d67', background: isFullscreen ? '#127369' : 'transparent', color: isFullscreen ? '#f0f0f0' : '#127369', cursor: 'pointer', transition: 'all 0.2s ease' }}>
