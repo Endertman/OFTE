@@ -124,7 +124,9 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
         }
     }, [currentPage, pageCount]);
 
-    // Touch Handling
+    // Touch Handling - High Performance DOM Driven
+    const zoomTransformRef = useRef({ scale: 1, x: 50, y: 50 });
+
     useEffect(() => {
         const el = overlayRef.current;
         if (!el) return;
@@ -139,19 +141,26 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                 setIsPinching(true);
                 ts.mode = 'pinching';
                 ts.pinchStartDist = getTouchDistance(e.touches[0], e.touches[1]);
-                ts.pinchStartScale = zoomScaleRef.current;
+                ts.pinchStartScale = zoomTransformRef.current.scale;
 
                 const rect = el.getBoundingClientRect();
                 const mid = getTouchMidpoint(e.touches[0], e.touches[1]);
-                setZoomOrigin({
-                    x: ((mid.x - rect.left) / rect.width) * 100,
-                    y: ((mid.y - rect.top) / rect.height) * 100,
-                });
+                const ox = ((mid.x - rect.left) / rect.width) * 100;
+                const oy = ((mid.y - rect.top) / rect.height) * 100;
+                
+                zoomTransformRef.current.x = ox;
+                zoomTransformRef.current.y = oy;
+                
+                if (flipbookWrapperRef.current) {
+                    flipbookWrapperRef.current.style.transformOrigin = `${ox}% ${oy}%`;
+                    flipbookWrapperRef.current.style.transition = 'none';
+                }
                 return;
             }
             if (e.touches.length === 1) {
-                if (zoomScaleRef.current > 1) {
+                if (zoomTransformRef.current.scale > 1) {
                     e.preventDefault();
+                    ts.mode = 'panning';
                 } else {
                     ts.mode = 'waiting';
                     ts.startX = e.touches[0].clientX;
@@ -170,7 +179,10 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                 setIsPinching(true);
                 ts.mode = 'pinching';
                 ts.pinchStartDist = getTouchDistance(e.touches[0], e.touches[1]);
-                ts.pinchStartScale = zoomScaleRef.current;
+                ts.pinchStartScale = zoomTransformRef.current.scale;
+                if (flipbookWrapperRef.current) {
+                    flipbookWrapperRef.current.style.transition = 'none';
+                }
                 return;
             }
 
@@ -178,8 +190,17 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                 e.preventDefault();
                 const dist = getTouchDistance(e.touches[0], e.touches[1]);
                 const ratio = dist / ts.pinchStartDist;
-                setZoomScale(Math.min(Math.max(ts.pinchStartScale * ratio, 1), 4));
+                const newScale = Math.min(Math.max(ts.pinchStartScale * ratio, 1), 4);
+                
+                zoomTransformRef.current.scale = newScale;
+                if (flipbookWrapperRef.current) {
+                    flipbookWrapperRef.current.style.transform = `scale(${newScale})`;
+                }
                 return;
+            }
+
+            if (ts.mode === 'panning' && e.touches.length === 1) {
+                e.preventDefault(); // Prevent body scroll when zoomed
             }
 
             if (ts.mode === 'waiting' && e.touches.length === 1) {
@@ -195,7 +216,7 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                 }
             }
 
-            if (ts.mode === 'swiping' || zoomScaleRef.current > 1) e.preventDefault();
+            if (ts.mode === 'swiping' || zoomTransformRef.current.scale > 1) e.preventDefault();
         };
 
         const onEnd = (e) => {
@@ -213,10 +234,23 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
 
             if (ts.mode === 'pinching') {
                 setIsPinching(false);
-                if (zoomScaleRef.current < 1.15) {
-                    setZoomScale(1);
-                    setZoomOrigin({ x: 50, y: 50 });
+                let finalScale = zoomTransformRef.current.scale;
+                
+                if (flipbookWrapperRef.current) {
+                    flipbookWrapperRef.current.style.transition = 'transform 0.2s ease-out';
                 }
+                
+                if (finalScale < 1.15) {
+                    finalScale = 1;
+                    zoomTransformRef.current.scale = 1;
+                    zoomTransformRef.current.x = 50;
+                    zoomTransformRef.current.y = 50;
+                    if (flipbookWrapperRef.current) {
+                        flipbookWrapperRef.current.style.transform = 'none';
+                        flipbookWrapperRef.current.style.transformOrigin = 'center center';
+                    }
+                }
+                setZoomScale(finalScale); // Update UI badge only
             }
             if (e.touches.length === 0) ts.mode = 'none';
         };
@@ -249,11 +283,18 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
     };
 
     const handleDoubleTap = useCallback(() => {
-        if (zoomScale > 1) {
+        if (zoomTransformRef.current.scale > 1) {
+            zoomTransformRef.current.scale = 1;
+            zoomTransformRef.current.x = 50;
+            zoomTransformRef.current.y = 50;
+            if (flipbookWrapperRef.current) {
+                flipbookWrapperRef.current.style.transition = 'transform 0.2s ease-out';
+                flipbookWrapperRef.current.style.transform = 'none';
+                flipbookWrapperRef.current.style.transformOrigin = 'center center';
+            }
             setZoomScale(1);
-            setZoomOrigin({ x: 50, y: 50 });
         }
-    }, [zoomScale]);
+    }, []);
 
     return (
         <div
@@ -266,6 +307,7 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                 justifyContent: isFullscreen ? 'center' : 'flex-start',
                 padding: isFullscreen ? '16px' : '0',
                 boxSizing: 'border-box',
+                overflow: 'hidden', // Contain scaled content!
             }}
         >
             <h1
@@ -293,12 +335,11 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                     flex: isFullscreen ? '1' : 'none',
                     position: 'relative',
                     touchAction: isFullscreen ? 'none' : 'pan-y',
-                    overflow: 'hidden',
-                    transform: zoomScale > 1 ? `scale(${zoomScale})` : 'none',
-                    transformOrigin: zoomScale > 1 ? `${zoomOrigin.x}% ${zoomOrigin.y}%` : 'center center',
-                    transition: isPinching ? 'none' : 'transform 0.2s ease-out',
                     overscrollBehavior: 'contain',
                     overscrollBehaviorX: 'none',
+                    transformStyle: 'preserve-3d', // Safari compatibility
+                    zIndex: zoomScale > 1 ? 50 : 1, // Float over UI
+                    willChange: 'transform',
                 }}
             >
                 {ready && (

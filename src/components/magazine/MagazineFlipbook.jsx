@@ -82,7 +82,7 @@ export default function MagazineFlipbook(props) {
                     to { transform: rotate(360deg); }
                 }
                 .animate-spin { animation: spin 1s linear infinite; }
-                .magazine-flipbook { box-shadow: 0 4px 24px rgba(11, 43, 39, 0.25); border-radius: 4px; }
+                .magazine-flipbook { border-radius: 4px; }
                 .magazine-flipbook.is-mobile.at-front-cover,
                 .magazine-flipbook.is-mobile.at-rear-cover { left: 0 !important; }
                 .magazine-flipbook, .magazine-flipbook * { -webkit-user-select: none; user-select: none; }
