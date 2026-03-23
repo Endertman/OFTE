@@ -83,7 +83,7 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                 }
             });
         }
-        
+
         if (flipBookInstance.current && flipBookRootRef.current) {
             flipBookRootRef.current.style.width = dims.bookWidth + 'px';
             flipBookRootRef.current.style.height = dims.height + 'px';
@@ -147,10 +147,10 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                 const mid = getTouchMidpoint(e.touches[0], e.touches[1]);
                 const ox = ((mid.x - rect.left) / rect.width) * 100;
                 const oy = ((mid.y - rect.top) / rect.height) * 100;
-                
+
                 zoomTransformRef.current.x = ox;
                 zoomTransformRef.current.y = oy;
-                
+
                 if (flipbookWrapperRef.current) {
                     flipbookWrapperRef.current.style.transformOrigin = `${ox}% ${oy}%`;
                     flipbookWrapperRef.current.style.transition = 'none';
@@ -191,7 +191,7 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                 const dist = getTouchDistance(e.touches[0], e.touches[1]);
                 const ratio = dist / ts.pinchStartDist;
                 const newScale = Math.min(Math.max(ts.pinchStartScale * ratio, 1), 4);
-                
+
                 zoomTransformRef.current.scale = newScale;
                 if (flipbookWrapperRef.current) {
                     flipbookWrapperRef.current.style.transform = `scale(${newScale})`;
@@ -235,11 +235,11 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
             if (ts.mode === 'pinching') {
                 setIsPinching(false);
                 let finalScale = zoomTransformRef.current.scale;
-                
+
                 if (flipbookWrapperRef.current) {
                     flipbookWrapperRef.current.style.transition = 'transform 0.2s ease-out';
                 }
-                
+
                 if (finalScale < 1.15) {
                     finalScale = 1;
                     zoomTransformRef.current.scale = 1;
@@ -343,14 +343,14 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                 }}
             >
                 {ready && (
-                    <div 
-                        ref={flipBookRootRef} 
+                    <div
+                        ref={flipBookRootRef}
                         className="c-flipbook magazine-flipbook is-mobile"
-                        style={{ 
-                            width: dims.bookWidth, 
-                            height: dims.height, 
-                            position: 'relative', 
-                            left: 'auto', 
+                        style={{
+                            width: dims.bookWidth,
+                            height: dims.height,
+                            position: 'relative',
+                            left: 'auto',
                             top: 'auto',
                             flexShrink: 0,
                             transform: `translateX(${currentPage % 2 === 0 ? '-50%' : '0%'})`,
@@ -423,9 +423,9 @@ export default function MobileFlipbook({ folder, pageCount, filePattern, title }
                 </button>
                 <button onClick={toggleFullscreen} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '44px', height: '44px', borderRadius: '50%', border: '1px solid #396d67', background: isFullscreen ? '#127369' : 'transparent', color: isFullscreen ? '#f0f0f0' : '#127369', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                     {isFullscreen ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3" /><path d="M21 8h-3a2 2 0 0 1-2-2V3" /><path d="M3 16h3a2 2 0 0 1 2 2v3" /><path d="M16 21v-3a2 2 0 0 1 2-2h3" /></svg>
                     ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3" /><path d="M21 8V5a2 2 0 0 0-2-2h-3" /><path d="M3 16v3a2 2 0 0 0 2 2h3" /><path d="M16 21h3a2 2 0 0 0 2-2v-3" /></svg>
                     )}
                 </button>
             </div>
