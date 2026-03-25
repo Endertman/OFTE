@@ -27,7 +27,7 @@ export const magazines: Magazine[] = [
         description: 'Primera edición de la revista científica OFTE.',
         coverImage: '/books/book1/FUTURA-PHYSICA_Vol.1_pages-to-jpg-0001.jpg',
         folder: '/books/book1',
-        pageCount: 23,
+        pageCount: 24,
         filePattern: 'FUTURA-PHYSICA_Vol.1_pages-to-jpg-{NUM}.jpg',
         relatedArticles: ['luz_cuantica_y_una_mirada_humana'],
     },
