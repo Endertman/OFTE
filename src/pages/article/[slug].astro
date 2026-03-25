@@ -1,45 +1,38 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import fs from 'fs';
-import path from 'path';
 import { marked } from 'marked';
 
-export async function getStaticPaths() {
-  const articleDir = path.join(process.cwd(), 'public/article');
-  if (!fs.existsSync(articleDir)) return [];
-  
-  const folders = fs.readdirSync(articleDir, { withFileTypes: true }).filter((d: any) => d.isDirectory());
-  
-  return folders.map((folder: any) => {
-    return {
-      params: { slug: folder.name },
-    };
-  });
+// Load all README.md files at build time (works in Netlify serverless)
+const rawFiles = import.meta.glob('/public/article/*/README.md', { as: 'raw', eager: true });
+
+export function getStaticPaths() {
+  return Object.keys(rawFiles).map((filePath) => ({
+    params: { slug: filePath.split('/')[3] },
+  }));
 }
 
 const { slug } = Astro.params;
-const mdPath = path.join(process.cwd(), 'public/article', slug || '', 'README.md');
+const filePath = `/public/article/${slug}/README.md`;
+const mdContent = rawFiles[filePath] as string | undefined;
 
 let htmlContent = '';
 let title = 'Artículo no encontrado';
 
-if (fs.existsSync(mdPath)) {
-  const mdContent = fs.readFileSync(mdPath, 'utf8');
-  
-  // Custom image renderer to correctly route images located alongside the README.md
-  const renderer = new marked.Renderer();
-  renderer.image = function ({ href, text }) {
-    const src = href.startsWith('http') || href.startsWith('/') ? href : `/article/${slug}/${href}`;
-    return `<figure><img src="${src}" alt="${text || ''}" loading="lazy" /><figcaption>${text || ''}</figcaption></figure>`;
-  };
-  
-  htmlContent = await marked.parse(mdContent, { renderer });
-  
-  const titleMatch = mdContent.match(/^#\s+(.*)/m);
-  if (titleMatch) title = titleMatch[1];
-} else {
+if (!mdContent) {
   return Astro.redirect('/404');
 }
+
+// Custom image renderer to correctly route images alongside the README.md
+const renderer = new marked.Renderer();
+renderer.image = function ({ href, text }) {
+  const src = href.startsWith('http') || href.startsWith('/') ? href : `/article/${slug}/${href}`;
+  return `<figure><img src="${src}" alt="${text || ''}" loading="lazy" /><figcaption>${text || ''}</figcaption></figure>`;
+};
+
+htmlContent = await marked.parse(mdContent, { renderer });
+
+const titleMatch = mdContent.match(/^#\s+(.*)/m);
+if (titleMatch) title = titleMatch[1];
 ---
 
 <Layout title={`${title} · OFTE`} description={title}>

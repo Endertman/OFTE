@@ -1,33 +1,21 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import fs from 'fs';
-import path from 'path';
 
-const articleDir = path.join(process.cwd(), 'public/article');
-const articles: any[] = [];
+// Import all README.md files from public/article at build time (Vite)
+const rawFiles = import.meta.glob('/public/article/*/README.md', { as: 'raw', eager: true });
 
-if (fs.existsSync(articleDir)) {
-  const folders = fs.readdirSync(articleDir, { withFileTypes: true }).filter((d: any) => d.isDirectory());
-  
-  for (const folder of folders) {
-    const slug = folder.name;
-    const mdPath = path.join(articleDir, slug, 'README.md');
-    
-    if (fs.existsSync(mdPath)) {
-      const content = fs.readFileSync(mdPath, 'utf8');
-      
-      // Extract title from first # heading or fallback to slug
-      const titleMatch = content.match(/^#\s+(.*)/m);
-      const title = titleMatch ? titleMatch[1] : slug;
-      
-      // Find first markdown image for cover
-      const imgMatch = content.match(/!\[.*?\]\((.*?)\)/);
-      const coverImage = imgMatch ? `/article/${slug}/${imgMatch[1]}` : null;
-      
-      articles.push({ slug, title, coverImage });
-    }
-  }
-}
+const articles = Object.entries(rawFiles).map(([filePath, content]) => {
+  // Extract slug from path: /public/article/SLUG/README.md
+  const slug = filePath.split('/')[3];
+
+  const titleMatch = (content as string).match(/^#\s+(.*)/m);
+  const title = titleMatch ? titleMatch[1] : slug;
+
+  const imgMatch = (content as string).match(/!\[.*?\]\((.*?)\)/);
+  const coverImage = imgMatch ? `/article/${slug}/${imgMatch[1]}` : null;
+
+  return { slug, title, coverImage };
+});
 ---
 
 <Layout title="Artículos · OFTE" description="Explora nuestros artículos, investigaciones y entrevistas exclusivas.">

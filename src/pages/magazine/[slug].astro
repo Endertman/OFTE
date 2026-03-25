@@ -2,8 +2,9 @@
 import Layout from "../../layouts/Layout.astro";
 import { magazines } from "../../data/magazines";
 import MagazineFlipbook from "../../components/magazine/MagazineFlipbook.jsx";
-import fs from 'fs';
-import path from 'path';
+
+// Load all article READMEs at build time
+const rawFiles = import.meta.glob('/public/article/*/README.md', { as: 'raw', eager: true });
 
 const { slug } = Astro.params;
 const magazine = magazines.find((m) => m.slug === slug);
@@ -14,11 +15,10 @@ if (!magazine) {
 
 let relatedArticlesData: any[] = [];
 if (magazine.relatedArticles) {
-    const articleDir = path.join(process.cwd(), 'public/article');
     for (const articleSlug of magazine.relatedArticles) {
-        const mdPath = path.join(articleDir, articleSlug, 'README.md');
-        if (fs.existsSync(mdPath)) {
-            const content = fs.readFileSync(mdPath, 'utf8');
+        const filePath = `/public/article/${articleSlug}/README.md`;
+        const content = rawFiles[filePath] as string | undefined;
+        if (content) {
             const titleMatch = content.match(/^#\s+(.*)/m);
             const title = titleMatch ? titleMatch[1] : articleSlug;
             const imgMatch = content.match(/!\[.*?\]\((.*?)\)/);
