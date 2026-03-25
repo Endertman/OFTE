@@ -2,12 +2,30 @@
 import Layout from "../../layouts/Layout.astro";
 import { magazines } from "../../data/magazines";
 import MagazineFlipbook from "../../components/magazine/MagazineFlipbook.jsx";
+import fs from 'fs';
+import path from 'path';
 
 const { slug } = Astro.params;
 const magazine = magazines.find((m) => m.slug === slug);
 
 if (!magazine) {
     return Astro.redirect("/404");
+}
+
+let relatedArticlesData: any[] = [];
+if (magazine.relatedArticles) {
+    const articleDir = path.join(process.cwd(), 'public/article');
+    for (const articleSlug of magazine.relatedArticles) {
+        const mdPath = path.join(articleDir, articleSlug, 'README.md');
+        if (fs.existsSync(mdPath)) {
+            const content = fs.readFileSync(mdPath, 'utf8');
+            const titleMatch = content.match(/^#\s+(.*)/m);
+            const title = titleMatch ? titleMatch[1] : articleSlug;
+            const imgMatch = content.match(/!\[.*?\]\((.*?)\)/);
+            const coverImage = imgMatch ? `/article/${articleSlug}/${imgMatch[1]}` : null;
+            relatedArticlesData.push({ slug: articleSlug, title, coverImage });
+        }
+    }
 }
 ---
 
@@ -50,6 +68,49 @@ if (!magazine) {
                 filePattern={magazine.filePattern}
                 title={magazine.title}
             />
+
+            <!-- Related Articles -->
+            {relatedArticlesData.length > 0 && (
+                <div class="mt-20 pt-16 border-t border-primary-200/50 dark:border-primary-800/50">
+                    <h3 class="text-2xl font-bold tracking-tight text-primary-900 dark:text-primary-50 mb-8 tracking-tight md:text-3xl text-center">
+                        Artículos en esta Edición
+                    </h3>
+                    <div class="flex flex-wrap justify-center gap-6 sm:gap-8">
+                        {relatedArticlesData.map((article) => (
+                            <a
+                                href={`/article/${article.slug}`}
+                                class="w-full max-w-sm group flex flex-col overflow-hidden rounded-2xl bg-white/50 dark:bg-primary-900/50 border border-primary-200/60 dark:border-primary-700/40 hover:shadow-xl hover:shadow-primary-700/10 dark:hover:shadow-primary-400/5 hover:-translate-y-1 transition-all duration-300 backdrop-blur-sm"
+                            >
+                                {article.coverImage ? (
+                                    <div class="aspect-[16/10] w-full overflow-hidden bg-primary-100 dark:bg-primary-800">
+                                        <img
+                                            src={article.coverImage}
+                                            alt={article.title}
+                                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                            loading="lazy"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div class="aspect-[16/10] w-full bg-primary-100/50 dark:bg-primary-800/50 flex items-center justify-center">
+                                        <span class="text-primary-400">Artículo de Texto</span>
+                                    </div>
+                                )}
+                                <div class="flex flex-1 flex-col p-6">
+                                    <h4 class="text-lg font-semibold leading-snug tracking-tight text-primary-900 dark:text-primary-50 mb-4">
+                                        {article.title}
+                                    </h4>
+                                    <div class="mt-auto flex items-center gap-2 text-sm font-medium text-primary-700 dark:text-primary-400 group-hover:text-primary-800 dark:group-hover:text-primary-300">
+                                        Leer completo
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-300 group-hover:translate-x-1">
+                                            <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     </section>
 </Layout>

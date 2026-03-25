@@ -6,6 +6,7 @@ export interface Magazine {
     folder: string;
     pageCount: number;
     filePattern: string;
+    relatedArticles?: string[];
 }
 
 /**
@@ -22,20 +23,13 @@ export function getPageUrls(magazine: Magazine): string[] {
 export const magazines: Magazine[] = [
     {
         slug: 'book1',
-        title: 'Attention is All You Need - Vol. 1',
+        title: 'Futura Physica - Vol 1',
         description: 'Primera edición de la revista científica OFTE.',
-        coverImage: '/books/book1/Attencion is all you need-page-00001.jpg',
+        coverImage: '/books/book1/FUTURA-PHYSICA_Vol.1_pages-to-jpg-0001.jpg',
         folder: '/books/book1',
-        pageCount: 15,
-        filePattern: 'Attencion is all you need-page-{NUM}.jpg',
+        pageCount: 23,
+        filePattern: 'FUTURA-PHYSICA_Vol.1_pages-to-jpg-{NUM}.jpg',
+        relatedArticles: ['luz_cuantica_y_una_mirada_humana'],
     },
-    {
-        slug: 'book2',
-        title: 'Attention is All You Need - Vol. 2',
-        description: 'Segunda edición de la revista científica OFTE.',
-        coverImage: '/books/book2/Attencion is all you need-page-00001.jpg',
-        folder: '/books/book2',
-        pageCount: 15,
-        filePattern: 'Attencion is all you need-page-{NUM}.jpg',
-    },
+
 ];

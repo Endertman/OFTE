@@ -1,7 +1,7 @@
 {
   "name": "ofte",
   "type": "module",
-  "version": "0.0.1",
+  "version": "2.0.0",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -12,6 +12,7 @@
   "dependencies": {
     "@alpinejs/collapse": "^3.14.9",
     "@astrojs/alpinejs": "^0.4.8",
+    "@astrojs/check": "^0.9.8",
     "@astrojs/netlify": "^6.5.5",
     "@astrojs/node": "^9.2.2",
     "@astrojs/react": "^4.4.2",
@@ -24,6 +25,8 @@
     "astro-compress": "^2.3.8",
     "firebase": "^11.10.0",
     "firebase-admin": "^13.4.0",
+    "gray-matter": "^4.0.3",
+    "marked": "^17.0.5",
     "prettier": "^3.5.3",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-tailwindcss": "^0.6.11",
@@ -34,6 +37,6 @@
   },
   "devDependencies": {
     "@types/node": "^20.17.57",
-    "typescript": "^5.3.3"
+    "typescript": "^5.9.3"
   }
 }

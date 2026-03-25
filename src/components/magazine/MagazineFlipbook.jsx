@@ -8,7 +8,7 @@ import './flipbook.css';
  */
 export function getPageUrls(folder, pageCount, filePattern) {
     return Array.from({ length: pageCount }, (_, i) => {
-        const num = String(i + 1).padStart(5, '0');
+        const num = String(i + 1).padStart(4, '0');
         return `${folder}/${filePattern.replace('{NUM}', num)}`;
     });
 }
