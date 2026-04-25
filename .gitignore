@@ -29,3 +29,6 @@ pnpm-debug.log*
 
 # documentation
 DOCUMENTATION.md
+
+#firebase private key
+ofte-landing-unab-firebase-adminsdk-fbsvc-626564bcf0.json
