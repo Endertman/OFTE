@@ -31,5 +31,14 @@ export const magazines: Magazine[] = [
         filePattern: 'FUTURA-PHYSICA_Vol.1_pages-to-jpg-{NUM}.jpg',
         relatedArticles: ['luz_cuantica_y_una_mirada_humana'],
     },
+    {
+        slug: 'book2',
+        title: 'Futura Physica - Vol 2',
+        description: 'Segunda edición de la revista científica OFTE.',
+        coverImage: '/books/book2/0001.jpg',
+        folder: '/books/book2',
+        pageCount: 24,
+        filePattern: '{NUM}.jpg',
+    },
 
 ];
