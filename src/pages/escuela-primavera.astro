@@ -1,0 +1,557 @@
+---
+import Layout from '../layouts/Layout.astro';
+import {
+  event,
+  days,
+  areas,
+  plenaries,
+  courses,
+  commons,
+} from '../data/escuela2026';
+import type { Area, Course, Day } from '../data/escuela2026';
+
+export const prerender = true;
+
+const TBC = 'Por confirmar';
+
+// ---------- helpers ----------
+const startMinutes = (time: string): number => {
+  const m = /(\d{1,2})\s*[:.h]\s*(\d{2})/.exec(time ?? '');
+  return m ? Number(m[1]) * 60 + Number(m[2]) : Number.POSITIVE_INFINITY;
+};
+
+const paragraphs = (text?: string): string[] =>
+  (text ?? '')
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+const person = (honorific: string, speaker: string) =>
+  [honorific, speaker].filter(Boolean).join(' ');
+
+const shortDay = (day: string) => `${day} oct`;
+
+// "11:45 - 13:00" → ['11:45', '13:00']; "15:40" → ['15:40', '']
+const splitTime = (t: string) => {
+  const [start = '', end = ''] = t.split(/\s*[-–]\s*/);
+  return [start.trim(), end.trim()];
+};
+
+type ItemKind = 'logistica' | 'pausa' | 'actividad' | 'plenaria' | 'curso';
+interface ScheduleItem {
+  kind: ItemKind;
+  time: string;
+  start: number;
+  order: number;
+  label: string;
+  title?: string;
+  speaker?: string;
+  room?: string;
+  note?: string;
+}
+
+const itemsFor = (areaId: Area['id'], day: Day): ScheduleItem[] => {
+  const items: ScheduleItem[] = [];
+  let order = 0;
+
+  for (const c of commons) {
+    if (c.day !== day) continue;
+    items.push({
+      kind: c.kind,
+      time: c.time,
+      start: startMinutes(c.time),
+      order: order++,
+      label: c.label,
+      room: c.room,
+    });
+  }
+
+  for (const p of plenaries) {
+    if (p.slot?.day !== day) continue;
+    items.push({
+      kind: 'plenaria',
+      time: p.slot.time,
+      start: startMinutes(p.slot.time),
+      order: order++,
+      label: `Charla plenaria ${p.n}`,
+      title: p.title || TBC,
+      speaker: person(p.honorific, p.speaker),
+      room: p.slot.room,
+    });
+  }
+
+  for (const c of courses) {
+    if (c.area !== areaId) continue;
+    const total = c.sessions?.length ?? 0;
+    (c.sessions ?? []).forEach((s, i) => {
+      if (s.day !== day) return;
+      items.push({
+        kind: 'curso',
+        time: s.time,
+        start: startMinutes(s.time),
+        order: order++,
+        label: 'Minicurso',
+        title: c.title || TBC,
+        speaker: person(c.honorific, c.speaker),
+        room: s.room,
+        note: total > 1 ? `Sesión ${i + 1} de ${total}` : undefined,
+      });
+    });
+  }
+
+  return items.sort((a, b) => a.start - b.start || a.order - b.order);
+};
+
+const macros: Area['macro'][] = ['Física', 'Astronomía', 'Machine Learning'];
+const macroId: Record<Area['macro'], string> = {
+  Física: 'minicursos-fisica',
+  Astronomía: 'minicursos-astronomia',
+  'Machine Learning': 'minicursos-machine-learning',
+};
+const coursesBy = (areaId: Area['id']): Course[] =>
+  courses.filter((c) => c.area === areaId);
+const macroGroups = macros
+  .map((macro) => ({ macro, areas: areas.filter((a) => a.macro === macro) }))
+  .filter((g) => g.areas.length > 0);
+
+// ---------- Alpine tabs ----------
+const areaIds = areas.map((a) => a.id);
+const firstArea = areaIds[0] ?? '';
+const tabsData = `{
+  active: ${JSON.stringify(firstArea)},
+  ids: ${JSON.stringify(areaIds)},
+  go(id) { this.active = id; this.$nextTick(() => document.getElementById('tab-' + id)?.focus()); },
+  move(step) {
+    const n = this.ids.length;
+    if (!n) return;
+    const i = this.ids.indexOf(this.active);
+    this.go(this.ids[(i + step + n) % n]);
+  }
+}`;
+
+// ---------- shared classes ----------
+const container = 'mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8';
+const card =
+  'rounded-2xl border border-primary-200/50 bg-white dark:border-primary-800/50 dark:bg-primary-950';
+const muted = 'text-primary-950/70 dark:text-primary-200/70';
+const eyebrow =
+  'text-sm font-medium uppercase tracking-wider text-accent-700 dark:text-accent-300';
+const h2 = 'text-3xl font-medium tracking-tight sm:text-4xl';
+const focusRing =
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400';
+const summaryCls = `inline-flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg text-sm font-medium text-primary-700 hover:text-primary-800 dark:text-primary-300 dark:hover:text-primary-200 [&::-webkit-details-marker]:hidden ${focusRing}`;
+
+const icons = {
+  calendar:
+    'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5',
+  clock: 'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+  pin: 'M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z',
+  info: 'm11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z',
+  chevron: 'm19.5 8.25-7.5 7.5-7.5-7.5',
+  arrow: 'M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3',
+};
+---
+
+<Layout
+  title="Escuela de Primavera 2026 · OFTE"
+  description="Escuela de Primavera UNAB 2026: programa, charlas plenarias y minicursos en física, astronomía y machine learning. Del 13 al 16 de octubre de 2026."
+>
+  <!-- ============ 1. Hero ============ -->
+  <section class="py-16 sm:py-24">
+    <div class={container}>
+      <div class="flex max-w-3xl flex-col items-start gap-6 sm:gap-8">
+        <span
+          class="inline-flex items-center gap-2 rounded-full bg-accent-100 px-4 py-1.5 text-sm font-semibold text-accent-800 ring-1 ring-inset ring-accent-700/20 dark:bg-accent-900/40 dark:text-accent-200 dark:ring-accent-400/30"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d={icons.calendar}></path>
+          </svg>
+          <time datetime="2026-10-13">13–16 octubre 2026</time>
+        </span>
+
+        <div class="flex flex-col gap-4 sm:gap-6">
+          <h1 class="text-4xl font-medium leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+            Escuela de Primavera
+            <b class="text-primary-700 dark:text-primary-400">UNAB 2026</b>
+          </h1>
+          <p class={`${muted} max-w-2xl text-lg leading-relaxed sm:text-xl`}>
+            Cuatro días de minicursos, charlas plenarias y actividades en física, astronomía y
+            machine learning, del martes 13 al viernes 16 de octubre.
+          </p>
+          <p class={`${muted} inline-flex items-center gap-2 text-base`}>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d={icons.pin}></path>
+            </svg>
+            <span>{event.venue} · Sedes R14, R4 y R3</span>
+          </p>
+        </div>
+
+        {event.registrationClosed && (
+          <div class="flex w-full max-w-2xl items-start gap-3 rounded-2xl border border-primary-200/50 bg-primary-500/5 p-4 dark:border-primary-800/50 dark:bg-primary-400/5 sm:p-5">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-5 w-5 shrink-0 text-primary-700 dark:text-primary-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d={icons.info}></path>
+            </svg>
+            <p class="text-base">
+              <strong class="font-medium">Inscripciones cerradas.</strong>
+              <span class={muted}>
+                El periodo de inscripción ya finalizó. Aquí encontrarás el programa, las charlas
+                plenarias y el detalle de cada minicurso.
+              </span>
+            </p>
+          </div>
+        )}
+
+        {areas.length > 0 && (
+          <nav aria-label="Áreas de la escuela" class="w-full">
+            <ul class="flex flex-wrap gap-2 sm:gap-3">
+              {areas.map((a) => (
+                <li>
+                  <a
+                    href={`#${a.id}`}
+                    class={`inline-flex min-h-11 items-center rounded-full border border-primary-200/50 bg-primary-500/5 px-4 text-sm font-medium transition hover:border-primary-400 hover:bg-primary-500/10 dark:border-primary-800/50 dark:bg-primary-400/5 dark:hover:border-primary-600 dark:hover:bg-primary-400/10 ${focusRing}`}
+                  >
+                    {a.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
+        <div class="flex flex-wrap gap-3">
+          <a
+            href="#programa"
+            class={`group inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-transparent bg-primary-700 px-6 py-3 text-base font-medium text-white transition hover:bg-primary-800 dark:bg-primary-400 dark:text-primary-950 dark:hover:bg-primary-300 ${focusRing}`}
+          >
+            Ver programa
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d={icons.arrow}></path>
+            </svg>
+          </a>
+          <a
+            href="#minicursos"
+            class={`inline-flex min-h-11 items-center justify-center rounded-full border border-primary-600 px-6 py-3 text-base font-medium text-primary-700 transition hover:bg-primary-500/10 dark:border-primary-400 dark:text-primary-300 ${focusRing}`}
+          >
+            Minicursos
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. Charlas plenarias ============ -->
+  <section id="plenarias" class="scroll-mt-6 py-12 sm:py-16" aria-labelledby="plenarias-title">
+    <div class={container}>
+      <div class="flex flex-col gap-8">
+        <div>
+          <p class={eyebrow}>Para todas las áreas</p>
+          <h2 id="plenarias-title" class={`${h2} mt-2`}>Charlas plenarias</h2>
+          <p class={`${muted} mt-4 text-lg`}>
+            Tres charlas abiertas a todos los participantes de la escuela.
+          </p>
+        </div>
+
+        {plenaries.length === 0 ? (
+          <p class={`${card} ${muted} p-6`}>Las charlas plenarias se anunciarán pronto.</p>
+        ) : (
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {plenaries.map((p) => {
+              const abs = paragraphs(p.abstract);
+              return (
+                <article class={`${card} flex flex-col gap-4 border-t-2 border-t-accent-500 p-6 dark:border-t-accent-400`}>
+                  <p class="text-sm font-semibold text-accent-700 dark:text-accent-300">
+                    Plenaria {p.n}
+                  </p>
+                  <div class="flex flex-col gap-1">
+                    <h3 class={`text-xl font-medium ${p.title ? '' : 'italic ' + muted}`}>
+                      {p.title || TBC}
+                    </h3>
+                    <p class={muted}>{person(p.honorific, p.speaker)}</p>
+                  </div>
+                  {p.slot && (
+                    <ul class={`${muted} flex flex-col gap-1.5 text-sm`}>
+                      <li class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d={icons.calendar}></path></svg>
+                        {shortDay(p.slot.day)}
+                      </li>
+                      <li class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d={icons.clock}></path></svg>
+                        {p.slot.time}
+                      </li>
+                      <li class="flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d={icons.pin}></path></svg>
+                        {p.slot.room || TBC}
+                      </li>
+                    </ul>
+                  )}
+                  {abs.length > 0 && (
+                    <details class="group mt-auto border-t border-primary-200/50 pt-2 dark:border-primary-800/50">
+                      <summary class={summaryCls}>
+                        Ver resumen
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-open:rotate-180 motion-reduce:transition-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d={icons.chevron}></path></svg>
+                      </summary>
+                      <div class={`${muted} mt-2 flex flex-col gap-3 text-base`}>
+                        {abs.map((t) => <p>{t}</p>)}
+                      </div>
+                    </details>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 3. Programa ============ -->
+  <section id="programa" class="scroll-mt-6 py-12 sm:py-16" aria-labelledby="programa-title">
+    <div class={container}>
+      <div class="flex flex-col gap-8">
+        <div>
+          <p class={eyebrow}>Martes a viernes</p>
+          <h2 id="programa-title" class={`${h2} mt-2`}>Programa</h2>
+          <p class={`${muted} mt-4 text-lg`}>
+            Elige un área para ver su horario día por día, junto con las plenarias y las
+            actividades comunes.
+          </p>
+        </div>
+
+        {areas.length === 0 ? (
+          <p class={`${card} ${muted} p-6`}>El programa detallado se publicará pronto.</p>
+        ) : (
+          <div x-data={tabsData} class="flex flex-col gap-6">
+            <div
+              role="tablist"
+              aria-label="Área del programa"
+              class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
+            >
+              {areas.map((a, i) => (
+                <button
+                  type="button"
+                  role="tab"
+                  id={`tab-${a.id}`}
+                  aria-controls={`panel-${a.id}`}
+                  aria-selected={i === 0 ? 'true' : 'false'}
+                  tabindex={i === 0 ? 0 : -1}
+                  x-bind:aria-selected={`active === '${a.id}' ? 'true' : 'false'`}
+                  x-bind:tabindex={`active === '${a.id}' ? 0 : -1`}
+                  x-on:click={`active = '${a.id}'`}
+                  x-on:keydown.arrow-right.prevent="move(1)"
+                  x-on:keydown.arrow-down.prevent="move(1)"
+                  x-on:keydown.arrow-left.prevent="move(-1)"
+                  x-on:keydown.arrow-up.prevent="move(-1)"
+                  x-on:keydown.home.prevent="go(ids[0])"
+                  x-on:keydown.end.prevent="go(ids[ids.length - 1])"
+                  class={`min-h-11 rounded-xl border border-primary-200/50 bg-primary-500/5 px-3 py-2 text-sm font-medium leading-tight transition hover:bg-primary-500/10 dark:border-primary-800/50 dark:bg-primary-400/5 dark:hover:bg-primary-400/10 aria-selected:border-accent-700 aria-selected:bg-accent-700 aria-selected:text-white dark:aria-selected:border-accent-300 dark:aria-selected:bg-accent-300 dark:aria-selected:text-primary-950 ${focusRing}`}
+                >
+                  {a.name}
+                </button>
+              ))}
+            </div>
+
+            {areas.map((a, i) => (
+              <div
+                role="tabpanel"
+                id={`panel-${a.id}`}
+                aria-labelledby={`tab-${a.id}`}
+                tabindex="0"
+                x-show={`active === '${a.id}'`}
+                style={i === 0 ? undefined : 'display: none;'}
+                class={`rounded-2xl ${focusRing}`}
+              >
+                <div class="grid gap-4 lg:grid-cols-4">
+                  {days.map((day) => {
+                    const items = itemsFor(a.id, day);
+                    return (
+                      <div class="flex flex-col gap-3 rounded-2xl border border-primary-200/50 bg-primary-500/5 p-4 dark:border-primary-800/50 dark:bg-primary-400/5">
+                        <h3 class="sticky top-0 z-10 -mx-4 -mt-4 rounded-t-2xl bg-primary-50/95 px-4 pb-2 pt-4 text-lg font-medium backdrop-blur dark:bg-primary-950/95 lg:static lg:mx-0 lg:mt-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none dark:lg:bg-transparent">
+                          {shortDay(day)}
+                          <span class={`${muted} block text-sm font-normal lg:hidden`}>{a.name}</span>
+                        </h3>
+                        {items.length === 0 ? (
+                          <p class={`${muted} text-sm`}>Sin actividades publicadas.</p>
+                        ) : (
+                          <ol class="flex flex-col gap-3">
+                            {items.map((it) => {
+                              const [from, to] = splitTime(it.time);
+                              const highlight = it.kind === 'plenaria' || it.kind === 'actividad';
+                              return (
+                                <li class="grid grid-cols-[3.5rem_1fr] gap-3">
+                                  <p class="flex flex-col pt-0.5 leading-tight tabular-nums">
+                                    <span class="text-base font-semibold">{from}</span>
+                                    {to && <span class={`${muted} text-sm`}><span class="sr-only">a </span>{to}</span>}
+                                  </p>
+                                  {it.kind === 'pausa' ? (
+                                    <p class={`${muted} pt-0.5 text-base`}>{it.label}</p>
+                                  ) : it.kind === 'curso' ? (
+                                    <div class="flex flex-col gap-1 rounded-xl border border-primary-200/50 bg-white p-3 dark:border-primary-800/50 dark:bg-primary-950">
+                                      <span class={`text-base font-medium leading-snug ${it.title === TBC ? 'italic ' + muted : ''}`}>
+                                        {it.title}
+                                      </span>
+                                      <span class={`${muted} text-sm`}>{it.speaker}</span>
+                                      <span class={`${muted} text-sm`}>
+                                        {it.room}{it.note && <> · <span class="whitespace-nowrap">{it.note}</span></>}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div
+                                      class={`flex flex-col gap-0.5 border-l-2 pl-3 ${
+                                        highlight
+                                          ? 'border-accent-500 dark:border-accent-400'
+                                          : 'border-primary-200/70 dark:border-primary-800/70'
+                                      }`}
+                                    >
+                                      <span class={`text-base font-medium leading-snug ${highlight ? 'text-accent-800 dark:text-accent-200' : ''}`}>
+                                        {it.label}
+                                      </span>
+                                      {it.kind === 'plenaria' && (
+                                        <span class={`${muted} text-sm`}>
+                                          {it.speaker}{it.title && it.title !== TBC && <> · {it.title}</>}
+                                        </span>
+                                      )}
+                                      {it.room && <span class={`${muted} text-sm`}>{it.room}</span>}
+                                    </div>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ol>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. Minicursos ============ -->
+  <section id="minicursos" class="scroll-mt-6 py-12 sm:py-16" aria-labelledby="minicursos-title">
+    <div class={container}>
+      <div class="flex flex-col gap-12">
+        <div>
+          <p class={eyebrow}>Tres sesiones cada uno</p>
+          <h2 id="minicursos-title" class={`${h2} mt-2`}>Minicursos</h2>
+          <p class={`${muted} mt-4 text-lg`}>
+            Tres minicursos por área, agrupados en física, astronomía y machine learning.
+          </p>
+        </div>
+
+        {macroGroups.length === 0 ? (
+          <p class={`${card} ${muted} p-6`}>Los minicursos se publicarán pronto.</p>
+        ) : (
+          macroGroups.map((g) => (
+            <div id={macroId[g.macro]} class="flex scroll-mt-6 flex-col gap-10">
+              <h3 class="border-b border-primary-200/50 pb-3 text-2xl font-medium tracking-tight dark:border-primary-800/50">
+                {g.macro}
+              </h3>
+              {g.areas.map((a) => {
+                const list = coursesBy(a.id);
+                const showArea = g.areas.length > 1 || a.name !== g.macro;
+                const CourseTitle = showArea ? 'h5' : 'h4';
+                return (
+                  <div id={a.id} class="flex scroll-mt-6 flex-col gap-4">
+                    {showArea && (
+                      <h4 class="text-xl font-medium">{a.name}</h4>
+                    )}
+                    {list.length === 0 ? (
+                      <p class={`${muted} text-base`}>Minicursos por confirmar.</p>
+                    ) : (
+                      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {list.map((c) => {
+                          const abs = paragraphs(c.abstract);
+                          return (
+                            <article class={`${card} flex flex-col gap-4 p-6`}>
+                              <div class="flex flex-col gap-1">
+                                <CourseTitle class={`text-lg font-medium leading-snug ${c.title ? '' : 'italic ' + muted}`}>
+                                  {c.title || TBC}
+                                </CourseTitle>
+                                <p class="text-base">{person(c.honorific, c.speaker)}</p>
+                                {c.affiliation && <p class={`${muted} text-sm`}>{c.affiliation}</p>}
+                              </div>
+                              {(c.sessions?.length ?? 0) > 0 && (
+                                <ol class="flex flex-col gap-2 rounded-xl bg-primary-500/5 p-3 text-sm dark:bg-primary-400/5">
+                                  {c.sessions.map((s, i) => (
+                                    <li class="flex flex-col">
+                                      <span class="font-medium">
+                                        <span class="sr-only">Sesión {i + 1}: </span>
+                                        {s.day} · <span class="tabular-nums">{s.time}</span>
+                                      </span>
+                                      <span class={muted}>{s.room || TBC}</span>
+                                    </li>
+                                  ))}
+                                </ol>
+                              )}
+                              <div class="mt-auto">
+                                {abs.length > 0 ? (
+                                  <details class="group">
+                                    <summary class={summaryCls}>
+                                      Ver resumen
+                                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-open:rotate-180 motion-reduce:transition-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d={icons.chevron}></path></svg>
+                                    </summary>
+                                    <div class={`${muted} mt-2 flex flex-col gap-3 text-base`}>
+                                      {abs.map((t) => <p>{t}</p>)}
+                                    </div>
+                                  </details>
+                                ) : (
+                                  <p class={`${muted} text-sm italic`}>Resumen por confirmar</p>
+                                )}
+                                {c.link && (
+                                  <a href={c.link} target="_blank" rel="noopener noreferrer" class="mt-3 inline-flex items-center gap-1 text-sm font-medium text-accent-700 underline-offset-4 hover:underline dark:text-accent-300">
+                                    Materiales del curso
+                                    <span aria-hidden="true">↗</span>
+                                    <span class="sr-only">(abre en una pestaña nueva)</span>
+                                  </a>
+                                )}
+                              </div>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. Cierre ============ -->
+  <section class="py-12 sm:py-20">
+    <div class={container}>
+      <div class="flex flex-col gap-6 rounded-3xl border border-primary-200/50 bg-primary-500/5 px-5 py-10 dark:border-primary-800/50 dark:bg-primary-400/5 sm:px-10 sm:py-12 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex max-w-2xl flex-col gap-3">
+          <h2 class="text-2xl font-medium tracking-tight sm:text-3xl">Más que minicursos</h2>
+          <p class={`${muted} text-base sm:text-lg`}>
+            El jueves se realizan las charlas de estudiantes y la sesión de pósters. Las
+            actividades se desarrollan en las sedes R14, R4 y R3 de la {event.venue}.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a
+            href="https://www.instagram.com/ofte.unab/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class={`inline-flex min-h-11 items-center justify-center rounded-full border border-transparent bg-primary-700 px-6 py-3 text-base font-medium text-white transition hover:bg-primary-800 dark:bg-primary-400 dark:text-primary-950 dark:hover:bg-primary-300 ${focusRing}`}
+          >
+            Instagram @ofte.unab<span class="sr-only"> (abre en una pestaña nueva)</span>
+          </a>
+          <a
+            href="/contact"
+            class={`inline-flex min-h-11 items-center justify-center rounded-full border border-primary-600 px-6 py-3 text-base font-medium text-primary-700 transition hover:bg-primary-500/10 dark:border-primary-400 dark:text-primary-300 ${focusRing}`}
+          >
+            Contacto
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

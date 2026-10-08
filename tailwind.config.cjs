@@ -58,6 +58,23 @@ const nishikigo = {
     '950': '#051615',   // casi negro verdoso
 };
 
+// Acento cobre/ámbar (gráfica oficial Escuela de Primavera, base #c97d3f).
+// Contraste AA: 700 sobre blanco 6.49:1 / sobre primary-50 5.70:1;
+// 300 sobre primary-950 9.83:1, 400 sobre primary-950 7.23:1.
+const copper = {
+    '50':  '#fdf7ef',
+    '100': '#f9ead7',
+    '200': '#f2d2ad',
+    '300': '#e9b27c',
+    '400': '#df8f4f',
+    '500': '#c97d3f',   // cobre del afiche oficial
+    '600': '#b06431',
+    '700': '#8f4c2a',
+    '800': '#743e27',
+    '900': '#5f3423',
+    '950': '#331910',
+};
+
 module.exports = {
   darkMode: 'class',
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
@@ -67,6 +84,7 @@ module.exports = {
       transparent: 'transparent',
       white: '#ffffff',
       primary: nishikigo,
+      accent: copper,
     },
     fontFamily: {
       sans: ['Inter', 'sans-serif'],
