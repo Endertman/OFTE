@@ -1,22 +1,20 @@
 ---
 import About from '../components/home/About.astro';
 import Cta from '../components/home/Cta.astro';
+import EscuelaHero from '../components/home/EscuelaHero.astro';
 import Expertise from '../components/home/Expertise.astro';
-import Hero from '../components/home/Hero.astro';
-import MagazineGallery from '../components/magazine/MagazineGallery.astro';
-import MagazinesHero from '../components/home/MagazinesHero.astro';
+import LatestMagazine from '../components/home/LatestMagazine.astro';
 // import Testimonials from '../components/home/Testimonials.astro';
 import Workshops from '../components/home/Workshops.astro';
 import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout
-  description="Organización de Física Teórica y Experimental"
-  title="Pagina Principal · OFTE"
+  description="OFTE · Organización de Física Teórica y Experimental. Escuela de Primavera UNAB 2026, del 13 al 16 de octubre: minicursos y charlas plenarias en física, astronomía y machine learning."
+  title="Escuela de Primavera UNAB 2026 · OFTE"
 >
-  <Hero />
-  <MagazinesHero />
-  <MagazineGallery />
+  <EscuelaHero />
+  <LatestMagazine />
   <Workshops />
   <Expertise />
   <About />

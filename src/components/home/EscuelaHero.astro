@@ -1,0 +1,144 @@
+---
+import { event, areas, plenaries, days } from '../../data/escuela2026';
+
+const base = '/escuela-primavera';
+const container = 'mx-auto max-w-2xl px-4 sm:px-6 lg:max-w-7xl lg:px-8';
+const muted = 'text-primary-950/70 dark:text-primary-200/70';
+const focusRing =
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 dark:focus-visible:outline-primary-400';
+
+const person = (honorific: string, speaker: string) =>
+  [honorific, speaker].filter(Boolean).join(' ');
+
+const icons = {
+  calendar:
+    'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5',
+  pin: 'M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z',
+  info: 'm11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z',
+  arrow: 'M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3',
+};
+---
+
+<section
+  class="relative flex min-h-[calc(100svh-7rem)] items-center py-12 sm:min-h-[calc(100svh-8rem)] sm:py-16 md:min-h-[calc(100svh-9rem)] lg:py-10"
+  aria-labelledby="escuela-hero-title"
+>
+  <div class={`${container} w-full`}>
+    <div class="grid gap-12 lg:grid-cols-12 lg:items-center lg:gap-16">
+      <!-- Main content -->
+      <div class="flex flex-col items-start gap-6 sm:gap-8 lg:col-span-7 lg:gap-6">
+        <span
+          class="inline-flex items-center gap-2 rounded-full bg-accent-100 px-4 py-1.5 text-sm font-semibold text-accent-800 ring-1 ring-inset ring-accent-700/20 dark:bg-accent-900/40 dark:text-accent-200 dark:ring-accent-400/30"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d={icons.calendar}></path>
+          </svg>
+          <time datetime="2026-10-13">13–16 octubre 2026</time>
+        </span>
+
+        <div class="flex flex-col gap-4 sm:gap-6">
+          <h1
+            id="escuela-hero-title"
+            class="text-4xl font-medium leading-tight tracking-tight sm:text-5xl lg:text-6xl"
+          >
+            Escuela de Primavera
+            <b class="text-primary-700 dark:text-primary-400">UNAB 2026</b>
+          </h1>
+          <p class={`${muted} max-w-2xl text-lg leading-relaxed sm:text-xl`}>
+            {days.length} días de minicursos y charlas plenarias en {areas.length} áreas de física,
+            astronomía y machine learning.
+          </p>
+          <p class={`${muted} inline-flex items-center gap-2 text-base`}>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d={icons.pin}></path>
+            </svg>
+            <span>{event.venue}</span>
+          </p>
+        </div>
+
+        {areas.length > 0 && (
+          <nav aria-label="Áreas de la escuela" class="order-last w-full sm:order-none">
+            <ul class="flex flex-wrap gap-2 sm:gap-3">
+              {areas.map((a) => (
+                <li>
+                  <a
+                    href={`${base}#${a.id}`}
+                    class={`inline-flex min-h-11 items-center rounded-full border border-primary-200/50 bg-primary-500/5 px-4 text-sm font-medium transition hover:border-primary-400 hover:bg-primary-500/10 dark:border-primary-800/50 dark:bg-primary-400/5 dark:hover:border-primary-600 dark:hover:bg-primary-400/10 ${focusRing}`}
+                  >
+                    {a.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
+        <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
+          <a
+            href={`${base}#programa`}
+            class={`group inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-transparent bg-primary-700 px-6 py-3 text-base font-medium text-white transition hover:bg-primary-800 dark:bg-primary-400 dark:text-primary-950 dark:hover:bg-primary-300 ${focusRing}`}
+          >
+            Ver programa
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:translate-x-1 motion-reduce:transition-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d={icons.arrow}></path>
+            </svg>
+          </a>
+          <a
+            href={`${base}#minicursos`}
+            class={`inline-flex min-h-11 items-center justify-center rounded-full border border-primary-600 px-6 py-3 text-base font-medium text-primary-700 transition hover:bg-primary-500/10 dark:border-primary-400 dark:text-primary-300 ${focusRing}`}
+          >
+            Minicursos
+          </a>
+        </div>
+
+        {event.registrationClosed && (
+          <p class={`${muted} flex items-start gap-2 text-sm`}>
+            <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d={icons.info}></path>
+            </svg>
+            <span>
+              <strong class="font-medium text-primary-950 dark:text-primary-100">Inscripciones cerradas.</strong>
+              El programa y los minicursos siguen disponibles para consulta.
+            </span>
+          </p>
+        )}
+      </div>
+
+      <!-- Plenaries -->
+      {plenaries.length > 0 && (
+        <aside class="lg:col-span-5" aria-labelledby="escuela-hero-plenarias">
+          <div class="rounded-2xl border border-primary-200/50 bg-white p-6 dark:border-primary-800/50 dark:bg-primary-950 sm:p-8">
+            <p
+              id="escuela-hero-plenarias"
+              class="text-sm font-medium uppercase tracking-wider text-accent-700 dark:text-accent-300"
+            >
+              Charlas plenarias
+            </p>
+            <ul class="mt-4 divide-y divide-primary-200/50 dark:divide-primary-800/50">
+              {plenaries.map((p) => (
+                <li>
+                  <a
+                    href={`${base}#plenarias`}
+                    class={`flex min-h-11 items-center gap-4 rounded-lg py-4 transition hover:text-primary-700 dark:hover:text-primary-300 ${focusRing}`}
+                  >
+                    <span class="w-8 shrink-0 text-sm font-semibold text-accent-700 dark:text-accent-300">
+                      {p.n}
+                    </span>
+                    <span class="flex min-w-0 flex-col">
+                      <span class="text-base font-medium">{person(p.honorific, p.speaker)}</span>
+                      {p.slot && (
+                        <span class={`${muted} text-sm`}>
+                          {p.slot.day} oct · {p.slot.time.split(/\s*[-–]\s*/)[0]}
+                        </span>
+                      )}
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </aside>
+      )}
+    </div>
+  </div>
+</section>
